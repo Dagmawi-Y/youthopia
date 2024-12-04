@@ -11,6 +11,7 @@ export default function Home() {
       <div className="relative min-h-screen overflow-hidden">
         {/* Hero Section */}
         <div className="relative bg-gradient-to-b from-[#F6F7C4] via-white to-[#A1EEBD]">
+          <div className="noise"></div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-16">
             <div className="text-center relative z-10">
               <h1 className="text-6xl font-bold tracking-tight text-gray-900 sm:text-7xl mb-8">

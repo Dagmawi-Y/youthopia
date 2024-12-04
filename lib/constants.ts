@@ -2,7 +2,6 @@ export const NAVIGATION_ITEMS = [
   { title: 'Activity', href: '/activity' },
   { title: 'Library', href: '/library' },
   { title: 'Challenges', href: '/challenges' },
-  { title: 'Profile', href: '/profile' },
 ];
 
 export const MOCK_POSTS = [
