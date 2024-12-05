@@ -93,6 +93,13 @@ export interface Challenge {
   submissions: Submission[];
 }
 
+export const getDaysLeft = (deadline?: Date): number => {
+  if (!deadline) return 0;
+  const now = new Date();
+  const diff = deadline.getTime() - now.getTime();
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+};
+
 export interface Submission {
   userId: string;
   userName: string;

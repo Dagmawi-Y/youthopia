@@ -11,7 +11,7 @@ export function CourseCard({ course }: CourseCardProps) {
   return (
     <Card className="w-[300px] flex flex-col">
       <img
-        src={course.imageUrl}
+        src={course.imageURL}
         alt={course.title}
         className="h-40 w-full object-cover rounded-t-lg"
       />

@@ -1,4 +1,4 @@
-import { Challenge } from "@/lib/types";
+import { Challenge, getDaysLeft } from "@/lib/types";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, Clock } from "lucide-react";
@@ -12,7 +12,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
     <Card className="overflow-hidden">
       <div className="relative">
         <img
-          src={challenge.imageUrl}
+          src={challenge.imageURL}
           alt={challenge.title}
           className="w-full h-48 object-cover"
         />
@@ -26,11 +26,11 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
         <div className="flex items-center justify-between text-sm text-gray-500">
           <div className="flex items-center space-x-2">
             <Users className="h-4 w-4" />
-            <span>{challenge.participants} participants</span>
+            <span>{challenge.participants.length} participants</span>
           </div>
           <div className="flex items-center space-x-2">
             <Clock className="h-4 w-4" />
-            <span>{challenge.daysLeft} days left</span>
+            <span>{getDaysLeft(challenge.deadline)} days left</span>
           </div>
         </div>
       </CardContent>

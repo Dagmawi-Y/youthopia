@@ -12,9 +12,9 @@ interface ContentCardProps {
   username: string;
   userAvatar?: string;
   imageUrl: string;
-  caption?: string;
+  content?: string;
   likes?: number;
-  comments?: number;
+  commentCount?: number;
   timestamp?: string;
   className?: string;
 }
@@ -24,9 +24,9 @@ export function ContentCard({
   username,
   userAvatar,
   imageUrl,
-  caption,
+  content,
   likes = 0,
-  comments = 0,
+  commentCount = 0,
   timestamp,
   className,
 }: ContentCardProps) {
@@ -50,7 +50,7 @@ export function ContentCard({
       <div className="relative aspect-square">
         <Image
           src={imageUrl}
-          alt={caption || "Content image"}
+          alt={content || "Content image"}
           fill
           className="object-cover"
         />
@@ -75,20 +75,20 @@ export function ContentCard({
           {likes > 0 && (
             <p className="text-sm font-medium dark:text-gray-200">{likes} likes</p>
           )}
-          {caption && (
+          {content && (
             <p className="text-sm dark:text-gray-300">
               <Link href={`/profile/${username}`} className="font-medium dark:text-gray-200">
                 {username}
               </Link>{" "}
-              {caption}
+              {content}
             </p>
           )}
-          {comments > 0 && (
+          {commentCount > 0 && (
             <Link
               href={`/post/${id}`}
               className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
             >
-              View all {comments} comments
+              View all {commentCount} comments
             </Link>
           )}
         </div>

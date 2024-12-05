@@ -58,9 +58,9 @@ function ActivityContent() {
             id={post.id}
             username={post.username}
             imageUrl={post.imageUrl}
-            caption={post.caption}
+            content={post.caption}
             likes={post.likes}
-            comments={post.comments}
+            commentCount={post.comments}
             timestamp="1d ago"
           />
         ))}
