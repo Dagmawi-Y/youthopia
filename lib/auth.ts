@@ -1,69 +1,87 @@
 "use client";
 
+import Cookies from 'js-cookie';
 import { User } from "./types";
 
-// Mock user data
-export const MOCK_USERS: User[] = [
-  {
-    id: "1",
-    username: "demo_user",
-    email: "demo@example.com",
-    password: "demo123",
-    avatar: "https://i.pravatar.cc/150?img=1",
-    bio: "Demo account for testing",
-    joinedDate: new Date("2024-01-01"),
-  },
-];
+const AUTH_TOKEN_KEY = 'auth_token';
+const USER_KEY = 'current_user';
 
-// In-memory storage for users
-let users = [...MOCK_USERS];
-let currentUser: User | null = null;
+const isBrowser = typeof window !== 'undefined';
 
-export const auth = {
-  register: async (userData: { username: string; email: string; password: string }) => {
-    const existingUser = users.find(
-      (u) => u.email === userData.email || u.username === userData.username
-    );
-    
-    if (existingUser) {
-      throw new Error("User already exists");
+class AuthService {
+  private user: User | null = null;
+
+  constructor() {
+    if (isBrowser) {
+      const savedUser = localStorage.getItem(USER_KEY);
+      if (savedUser) {
+        this.user = JSON.parse(savedUser);
+      }
     }
+  }
 
-    const newUser: User = {
-      ...userData,
-      id: Math.random().toString(36).substr(2, 9),
-      joinedDate: new Date(),
-      avatar: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
-      bio: "",
-    };
+  getCurrentUser(): User | null {
+    return this.user;
+  }
 
-    users.push(newUser);
-    currentUser = newUser;
-    return newUser;
-  },
+  async register(userData: { username: string; email: string; password: string }): Promise<User> {
+    try {
+      const mockUser: User = {
+        id: Math.random().toString(36).substr(2, 9),
+        username: userData.username,
+        email: userData.email,
+        password: userData.password,
+        avatar: `https://api.dicebear.com/7.x/avatars/svg?seed=${userData.username}`,
+        joinedDate: new Date(),
+      };
 
-  login: async (email: string, password: string) => {
-    const user = users.find(
-      (u) => u.email === email && u.password === password
-    );
+      this.user = mockUser;
+      if (isBrowser) {
+        localStorage.setItem(USER_KEY, JSON.stringify(mockUser));
+        Cookies.set(AUTH_TOKEN_KEY, 'mock-token', { expires: 7 });
+      }
 
-    if (!user) {
-      throw new Error("Invalid credentials");
+      return mockUser;
+    } catch (error) {
+      throw new Error('Registration failed');
     }
+  }
 
-    currentUser = user;
-    return user;
-  },
+  async login(email: string, password: string): Promise<User> {
+    try {
+      const mockUser: User = {
+        id: '1',
+        username: email.split('@')[0],
+        email,
+        password,
+        avatar: `https://api.dicebear.com/7.x/avatars/svg?seed=${email}`,
+        joinedDate: new Date(),
+      };
 
-  logout: () => {
-    currentUser = null;
-  },
+      this.user = mockUser;
+      if (isBrowser) {
+        localStorage.setItem(USER_KEY, JSON.stringify(mockUser));
+        Cookies.set(AUTH_TOKEN_KEY, 'mock-token', { expires: 7 });
+      }
 
-  getCurrentUser: () => {
-    return currentUser;
-  },
+      return mockUser;
+    } catch (error) {
+      throw new Error('Login failed');
+    }
+  }
 
-  getAllUsers: () => {
-    return users;
-  },
-};
+  logout(): void {
+    this.user = null;
+    if (isBrowser) {
+      localStorage.removeItem(USER_KEY);
+      Cookies.remove(AUTH_TOKEN_KEY);
+    }
+  }
+
+  isAuthenticated(): boolean {
+    if (!isBrowser) return false;
+    return !!Cookies.get(AUTH_TOKEN_KEY) && !!this.user;
+  }
+}
+
+export const auth = new AuthService();

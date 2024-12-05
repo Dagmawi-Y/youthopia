@@ -1,21 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { useRouter, useSearchParams } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { NoiseTexture } from "@/components/ui/noise-texture";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import Link from "next/link";
 
 export default function SignInPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const searchParams = useSearchParams();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -25,113 +21,83 @@ export default function SignInPage() {
     setIsLoading(true);
 
     try {
-      await auth.login(formData.email, formData.password);
-      router.push("/");
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDemoLogin = async () => {
-    setError("");
-    setIsLoading(true);
-
-    try {
-      await auth.login("demo@example.com", "demo123");
-      router.push("/");
-    } catch (err: any) {
-      setError(err.message);
+      await auth.login(email, password);
+      // Get the redirect URL from the query params, default to /activity
+      const from = searchParams.get("from") || "/activity";
+      router.push(from);
+    } catch (err) {
+      setError("Invalid credentials");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <>
-      <NoiseTexture />
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#F6F7C4] to-[#A1EEBD] px-4">
-        <Card className="w-full max-w-md p-8 bg-white/80 backdrop-blur-sm">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold">Welcome Back!</h1>
-            <p className="text-gray-600 mt-2">Continue your creative journey</p>
-          </div>
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gradient-to-b from-[#F6F7C4] via-white to-[#A1EEBD]">
+      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-lg">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-gray-900">Welcome back!</h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Please sign in to your account
+          </p>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email
+              </label>
               <Input
                 id="email"
                 type="email"
-                placeholder="Enter your email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
                 required
-                disabled={isLoading}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mt-1"
+                placeholder="Enter your email"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Password
+              </label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter your password"
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
                 required
-                disabled={isLoading}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mt-1"
+                placeholder="Enter your password"
               />
             </div>
+          </div>
 
-            {error && (
-              <p className="text-red-500 text-sm text-center">{error}</p>
-            )}
+          {error && (
+            <p className="text-sm text-red-600 text-center">{error}</p>
+          )}
 
-            <Button
-              type="submit"
-              className="w-full bg-[#7BD3EA] hover:bg-[#A1EEBD] text-black"
-              disabled={isLoading}
+          <Button
+            type="submit"
+            className="w-full bg-[#7BD3EA] hover:bg-[#A1EEBD] text-black"
+            disabled={isLoading}
+          >
+            {isLoading ? "Signing in..." : "Sign in"}
+          </Button>
+
+          <p className="text-center text-sm text-gray-600">
+            Don't have an account?{" "}
+            <Link
+              href="/auth/signup"
+              className="font-medium text-[#7BD3EA] hover:text-[#A1EEBD]"
             >
-              {isLoading ? "Signing in..." : "Sign In"}
-            </Button>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-500">Or</span>
-              </div>
-            </div>
-
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={handleDemoLogin}
-              disabled={isLoading}
-            >
-              Try Demo Account
-            </Button>
-
-            <p className="text-center text-sm text-gray-600">
-              Don't have an account?{" "}
-              <Link
-                href="/auth/signup"
-                className="text-[#7BD3EA] hover:text-[#A1EEBD]"
-              >
-                Sign Up
-              </Link>
-            </p>
-          </form>
-        </Card>
+              Sign up
+            </Link>
+          </p>
+        </form>
       </div>
-    </>
+    </div>
   );
 }

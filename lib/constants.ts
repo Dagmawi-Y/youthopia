@@ -1,7 +1,10 @@
+import { Activity, Library, Trophy, User } from 'lucide-react';
+
 export const NAVIGATION_ITEMS = [
-  { title: 'Activity', href: '/activity' },
-  { title: 'Library', href: '/library' },
-  { title: 'Challenges', href: '/challenges' },
+  { title: 'Activity', href: '/activity', icon: Activity },
+  { title: 'Library', href: '/library', icon: Library },
+  { title: 'Challenges', href: '/challenges', icon: Trophy },
+  { title: 'Profile', href: '/profile', icon: User },
 ];
 
 export const MOCK_POSTS = [
