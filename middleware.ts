@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  const authToken = request.cookies.get('auth_token');
+  const authToken = request.cookies.get('fb_auth_token');
   const { pathname } = request.nextUrl;
 
   // Protected routes

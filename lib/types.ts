@@ -1,37 +1,96 @@
+export interface UserProfile {
+  uid: string;
+  email: string;
+  displayName: string;
+  photoURL?: string;
+  bio?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  points: number;
+  completedCourses: string[];
+  completedChallenges: string[];
+  badges: string[];
+}
+
 export interface Post {
-  id: number;
-  username: string;
-  caption: string;
-  imageUrl: string;
-  likes: number;
-  comments: number;
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorPhotoURL?: string;
+  content: string;
+  imageURL?: string;
+  likes: string[];
+  comments: Comment[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Comment {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorPhotoURL?: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface Course {
-  id: number;
+  id: string;
   title: string;
   description: string;
-  imageUrl: string;
-  level: string;
+  imageURL: string;
+  modules: CourseModule[];
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  duration: number; // in minutes
+  points: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CourseModule {
+  id: string;
+  title: string;
+  content: string;
+  videoURL?: string;
+  order: number;
+  quiz?: Quiz;
+}
+
+export interface Quiz {
+  id: string;
+  questions: QuizQuestion[];
+  passingScore: number;
+}
+
+export interface QuizQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
 }
 
 export interface Challenge {
-  id: number;
+  id: string;
   title: string;
   description: string;
-  imageUrl: string;
-  participants: number;
-  daysLeft: number;
+  imageURL?: string;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  points: number;
+  deadline?: Date;
+  participants: string[];
+  winners: string[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export interface User {
+export interface Badge {
   id: string;
-  username: string;
-  email: string;
-  password: string;
-  avatar?: string;
-  bio?: string;
-  joinedDate: Date;
+  name: string;
+  description: string;
+  imageURL: string;
+  criteria: string;
+  points: number;
 }
 
 export interface AuthState {

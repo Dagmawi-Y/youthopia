@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
 import { ThemeProvider } from '@/components/theme/theme-provider';
+import { AuthProvider } from '@/lib/context/auth-context';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -26,9 +27,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Navbar />
-          <main className="min-h-screen pt-16">{children}</main>
-          <Footer />
+          <AuthProvider>
+            <Navbar />
+            <main className="min-h-screen pt-16">{children}</main>
+            <Footer />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

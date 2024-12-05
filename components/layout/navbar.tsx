@@ -14,24 +14,21 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
-import { auth } from "@/lib/auth";
-import type { User as UserType } from "@/lib/types";
+import { useAuth } from "@/lib/context/auth-context";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<UserType | null>(null);
+  const { user, logout } = useAuth();
 
-  useEffect(() => {
-    const currentUser = auth.getCurrentUser();
-    setUser(currentUser);
-  }, [pathname]);
-
-  const handleSignOut = () => {
-    auth.logout();
-    setUser(null);
-    router.push("/");
+  const handleSignOut = async () => {
+    try {
+      await logout();
+      router.push("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
 
   return (
@@ -97,8 +94,8 @@ export function Navbar() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                       <Avatar>
-                        <AvatarImage src={user.avatar} />
-                        <AvatarFallback>{user.username.slice(0, 2).toUpperCase()}</AvatarFallback>
+                        <AvatarImage src={user.photoURL || undefined} />
+                        <AvatarFallback>{user.displayName?.slice(0, 2).toUpperCase() || user.email?.slice(0, 2).toUpperCase()}</AvatarFallback>
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
