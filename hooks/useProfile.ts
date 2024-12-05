@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../lib/firebase';
+import { db } from '../lib/firebase';
 import { UserProfile } from '../lib/types';
 import { useAuth } from '../lib/context/auth-context';
 import * as FirestoreService from '../lib/services/firestore';
@@ -60,13 +59,34 @@ export const useProfile = () => {
     
     try {
       setError(null);
-      const storageRef = ref(storage, `profile-images/${user.uid}/${file.name}`);
-      await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(storageRef);
+      
+      // Create a unique filename
+      const timestamp = Date.now();
+      const filename = `${user.uid}-${timestamp}-${file.name}`;
+      const relativePath = `/uploads/profile-images/${filename}`;
+      const fullPath = `/public${relativePath}`;
+      
+      // Create FormData for the file upload
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('path', fullPath);
+      
+      // Upload the file using the API route
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload image');
+      }
+      
+      // The URL will be relative to the public directory
+      const imageUrl = relativePath;
       
       // Update profile with new image URL
-      await updateProfile({ photoURL: downloadURL });
-      return downloadURL;
+      await updateProfile({ photoURL: imageUrl });
+      return imageUrl;
     } catch (err) {
       console.error('Error uploading profile image:', err);
       setError(err instanceof Error ? err.message : 'An error occurred while uploading profile image');
