@@ -27,12 +27,10 @@ class AuthService {
   async register(userData: { username: string; email: string; password: string }): Promise<User> {
     try {
       const mockUser: User = {
-        id: Math.random().toString(36).substr(2, 9),
-        username: userData.username,
+        uid: Math.random().toString(36).substr(2, 9),
         email: userData.email,
-        password: userData.password,
-        avatar: `https://api.dicebear.com/7.x/avatars/svg?seed=${userData.username}`,
-        joinedDate: new Date(),
+        displayName: userData.username,
+        photoURL: `https://api.dicebear.com/7.x/avatars/svg?seed=${userData.username}`,
       };
 
       this.user = mockUser;
@@ -50,12 +48,10 @@ class AuthService {
   async login(email: string, password: string): Promise<User> {
     try {
       const mockUser: User = {
-        id: '1',
-        username: email.split('@')[0],
+        uid: '1',
         email,
-        password,
-        avatar: `https://api.dicebear.com/7.x/avatars/svg?seed=${email}`,
-        joinedDate: new Date(),
+        displayName: email.split('@')[0],
+        photoURL: `https://api.dicebear.com/7.x/avatars/svg?seed=${email}`,
       };
 
       this.user = mockUser;
