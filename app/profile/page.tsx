@@ -55,11 +55,11 @@ export default function ProfilePage() {
             <div className="space-y-4">
               <div className="flex items-center space-x-4">
                 <div className="h-2 w-2 bg-[#7BD3EA] rounded-full" />
-                <p>Completed "Digital Art Basics" course</p>
+                <p>Completed &ldquo;Digital Art Basics&rdquo; course</p>
               </div>
               <div className="flex items-center space-x-4">
                 <div className="h-2 w-2 bg-[#A1EEBD] rounded-full" />
-                <p>Joined "Weekly Art Challenge"</p>
+                <p>Joined &ldquo;Weekly Art Challenge&rdquo;</p>
               </div>
               <div className="flex items-center space-x-4">
                 <div className="h-2 w-2 bg-[#F6F7C4] rounded-full" />
