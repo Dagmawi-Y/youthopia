@@ -22,9 +22,9 @@ function ActivityContent() {
     <div className="max-w-2xl mx-auto px-4 py-8">
       {/* Create Post Button */}
       <div className="mb-8">
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-[#A1EEBD]/20">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-[#A1EEBD]/20">
           <Button
-            className="w-full bg-[#7BD3EA] hover:bg-[#A1EEBD] text-black rounded-full flex items-center justify-center space-x-2"
+            className="w-full bg-[#7BD3EA] hover:bg-[#A1EEBD] text-black dark:text-white rounded-full flex items-center justify-center space-x-2"
           >
             <Camera className="h-5 w-5" />
             <span>Post</span>
@@ -41,7 +41,7 @@ function ActivityContent() {
             className={
               activeTab === tab.id
                 ? "text-[#7BD3EA] bg-[#7BD3EA]/10"
-                : "text-gray-600 hover:text-[#A1EEBD] hover:bg-[#A1EEBD]/10"
+                : "text-gray-600 dark:text-gray-300 hover:text-[#A1EEBD] hover:bg-[#A1EEBD]/10"
             }
             onClick={() => setActiveTab(tab.id)}
           >

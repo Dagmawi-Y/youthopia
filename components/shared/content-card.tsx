@@ -31,7 +31,7 @@ export function ContentCard({
   className,
 }: ContentCardProps) {
   return (
-    <div className={cn("bg-white rounded-xl shadow-sm overflow-hidden", className)}>
+    <div className={cn("bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden", className)}>
       {/* User Info */}
       <div className="p-4 flex items-center justify-between">
         <Link href={`/profile/${username}`} className="flex items-center space-x-2">
@@ -39,10 +39,10 @@ export function ContentCard({
             <AvatarImage src={userAvatar} />
             <AvatarFallback>{username.slice(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
-          <span className="font-medium text-sm text-gray-900">{username}</span>
+          <span className="font-medium text-sm text-gray-900 dark:text-gray-100">{username}</span>
         </Link>
         {timestamp && (
-          <span className="text-xs text-gray-500">{timestamp}</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">{timestamp}</span>
         )}
       </div>
 
@@ -59,13 +59,13 @@ export function ContentCard({
       {/* Actions */}
       <div className="p-4">
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="icon" className="text-gray-600 hover:text-[#7BD3EA]">
+          <Button variant="ghost" size="icon" className="text-gray-600 dark:text-gray-300 hover:text-[#7BD3EA]">
             <Heart className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="text-gray-600 hover:text-[#7BD3EA]">
+          <Button variant="ghost" size="icon" className="text-gray-600 dark:text-gray-300 hover:text-[#7BD3EA]">
             <MessageCircle className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="text-gray-600 hover:text-[#7BD3EA]">
+          <Button variant="ghost" size="icon" className="text-gray-600 dark:text-gray-300 hover:text-[#7BD3EA]">
             <Share2 className="h-5 w-5" />
           </Button>
         </div>
@@ -73,11 +73,11 @@ export function ContentCard({
         {/* Stats */}
         <div className="mt-2 space-y-2">
           {likes > 0 && (
-            <p className="text-sm font-medium">{likes} likes</p>
+            <p className="text-sm font-medium dark:text-gray-200">{likes} likes</p>
           )}
           {caption && (
-            <p className="text-sm">
-              <Link href={`/profile/${username}`} className="font-medium">
+            <p className="text-sm dark:text-gray-300">
+              <Link href={`/profile/${username}`} className="font-medium dark:text-gray-200">
                 {username}
               </Link>{" "}
               {caption}
@@ -86,7 +86,7 @@ export function ContentCard({
           {comments > 0 && (
             <Link
               href={`/post/${id}`}
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
             >
               View all {comments} comments
             </Link>

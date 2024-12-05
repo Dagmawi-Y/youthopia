@@ -16,6 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
 import { auth } from "@/lib/auth";
 import type { User as UserType } from "@/lib/types";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -34,7 +35,7 @@ export function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 w-full backdrop-blur-md bg-white/70 border-b border-[#A1EEBD]/20 z-50">
+    <nav className="fixed top-0 w-full backdrop-blur-md bg-white/70 dark:bg-gray-950/70 border-b border-[#A1EEBD]/20 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-2">
@@ -56,7 +57,7 @@ export function Navbar() {
                     "flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
                     pathname === item.href
                       ? "bg-[#7BD3EA]/10 text-[#7BD3EA]"
-                      : "text-gray-600 hover:bg-[#A1EEBD]/10 hover:text-[#A1EEBD]"
+                      : "text-gray-600 dark:text-gray-300 hover:bg-[#A1EEBD]/10 hover:text-[#A1EEBD]"
                   )}
                 >
                   {item.icon && <item.icon className="h-4 w-4 mr-2" />}
@@ -72,7 +73,7 @@ export function Navbar() {
                 <input
                   type="text"
                   placeholder="Search Nicknames or Hashtags"
-                  className="w-full px-4 py-2 rounded-full bg-gray-100 border-none focus:ring-2 focus:ring-[#7BD3EA] text-sm"
+                  className="w-full px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-800 border-none focus:ring-2 focus:ring-[#7BD3EA] text-sm dark:text-gray-200 dark:placeholder-gray-400"
                 />
                 <button className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-[#7BD3EA]">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -88,7 +89,7 @@ export function Navbar() {
               <>
                 <Button
                   variant="default"
-                  className="bg-[#7BD3EA] hover:bg-[#A1EEBD] text-black rounded-full"
+                  className="bg-[#7BD3EA] hover:bg-[#A1EEBD] text-black dark:text-white rounded-full"
                 >
                   Verify Profile
                 </Button>
@@ -125,13 +126,13 @@ export function Navbar() {
               <div className="hidden md:flex md:space-x-2">
                 <Button
                   variant="ghost"
-                  className="text-gray-600 hover:text-[#7BD3EA]"
+                  className="text-gray-600 dark:text-gray-300 hover:text-[#7BD3EA]"
                   onClick={() => router.push("/auth/signin")}
                 >
                   Sign in
                 </Button>
                 <Button
-                  className="bg-[#7BD3EA] hover:bg-[#A1EEBD] text-black rounded-full"
+                  className="bg-[#7BD3EA] hover:bg-[#A1EEBD] text-black dark:text-white rounded-full"
                   onClick={() => router.push("/auth/signup")}
                 >
                   Sign up
@@ -139,41 +140,35 @@ export function Navbar() {
               </div>
             )}
 
-            {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild className="md:hidden">
-                  <Button variant="ghost" size="icon">
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  {NAVIGATION_ITEMS.map((item) => (
-                    <DropdownMenuItem key={item.href} asChild>
-                      <Link href={item.href} className="flex items-center">
-                        {item.icon && <item.icon className="h-4 w-4 mr-2" />}
-                        {item.title}
-                      </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild className="md:hidden">
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {user && NAVIGATION_ITEMS.map((item) => (
+                  <DropdownMenuItem key={item.href} asChild>
+                    <Link href={item.href} className="flex items-center">
+                      {item.icon && <item.icon className="h-4 w-4 mr-2" />}
+                      {item.title}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+                {!user && (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link href="/auth/signin">Sign in</Link>
                     </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild className="md:hidden">
-                  <Button variant="ghost" size="icon">
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem asChild>
-                    <Link href="/auth/signin">Sign in</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/auth/signup">Sign up</Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+                    <DropdownMenuItem asChild>
+                      <Link href="/auth/signup">Sign up</Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <ThemeToggle />
           </div>
         </div>
       </div>
