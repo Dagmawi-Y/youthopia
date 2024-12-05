@@ -32,7 +32,7 @@ export default function SignUpPage() {
         uid: userCredential.user.uid,
         email,
         displayName,
-        photoURL: userCredential.user.photoURL || null,
+        photoURL: userCredential.user.photoURL || undefined,
         bio: '',
         points: 0,
         completedCourses: [],
