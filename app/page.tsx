@@ -44,8 +44,8 @@ export default function Home() {
                   { label: "Fun Courses", value: "200+" },
                   { label: "Daily Challenges", value: "50+" },
                 ].map((stat) => (
-                  <div key={stat.label} className="bg-white/60 dark:bg-gray-800/40 backdrop-blur-sm rounded-lg p-6 shadow-lg">
-                    <p className="text-4xl font-bold text-[#7BD3EA] dark:text-[#7BD3EA]/90">{stat.value}</p>
+                  <div key={stat.label} className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-lg p-6 shadow-lg">
+                    <p className="text-4xl font-bold text-[#7BD3EA]">{stat.value}</p>
                     <p className="mt-2 text-gray-600 dark:text-gray-300">{stat.label}</p>
                   </div>
                 ))}
@@ -55,13 +55,8 @@ export default function Home() {
         </div>
 
         {/* Features Section */}
-        <div className="relative py-24">
-          {/* Light mode gradient */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#A1EEBD]/30 to-white/50 dark:opacity-0 transition-opacity duration-300" />
-          {/* Dark mode gradient */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#A1EEBD]/10 to-transparent opacity-0 dark:opacity-100 transition-opacity duration-300" />
-
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="py-24 bg-gradient-to-b from-[#A1EEBD]/30 dark:from-[#A1EEBD]/5 to-transparent">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <h2 className="text-4xl font-bold text-gray-900 dark:text-white">Why Choose Youthopia?</h2>
               <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">
