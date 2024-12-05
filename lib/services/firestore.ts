@@ -42,8 +42,8 @@ export const createUserProfile = async (uid: string, data: Partial<UserProfile>)
 
   // Remove any undefined values
   Object.keys(profileData).forEach(key => {
-    if (profileData[key] === undefined) {
-      delete profileData[key];
+    if (profileData[key as keyof typeof profileData] === undefined) {
+      delete profileData[key as keyof typeof profileData];
     }
   });
 
@@ -78,8 +78,8 @@ export const updateUserProfile = async (uid: string, data: Partial<UserProfile>)
   // Remove any undefined values
   const updateData = { ...data };
   Object.keys(updateData).forEach(key => {
-    if (updateData[key] === undefined) {
-      delete updateData[key];
+    if (updateData[key as keyof typeof updateData] === undefined) {
+      delete updateData[key as keyof typeof updateData];
     }
   });
 

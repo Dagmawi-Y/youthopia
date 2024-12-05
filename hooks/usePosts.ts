@@ -66,11 +66,13 @@ export const usePosts = (limitCount = 10) => {
     
     try {
       await FirestoreService.createPost({
-        authorId: user.uid,
-        authorName: user.displayName || 'Anonymous',
-        authorPhotoURL: user.photoURL || undefined,
-        content,
-        imageURL,
+          authorId: user.uid,
+          authorName: user.displayName || 'Anonymous',
+          authorPhotoURL: user.photoURL || undefined,
+          content,
+          imageURL,
+          title: '',
+          tags: []
       });
       
       // Refresh posts

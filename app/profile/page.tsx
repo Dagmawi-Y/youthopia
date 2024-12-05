@@ -56,7 +56,7 @@ export default function ProfilePage() {
       let photoURL = profile?.photoURL;
 
       if (selectedImage) {
-        photoURL = await uploadProfileImage(selectedImage);
+        photoURL = await uploadProfileImage(selectedImage) || undefined;
       }
 
       await updateProfile({

@@ -15,6 +15,7 @@ export interface UserProfile {
 export interface Post {
   id: string;
   authorId: string;
+  title: string;
   authorName: string;
   authorPhotoURL?: string;
   content: string;
@@ -23,6 +24,7 @@ export interface Post {
   comments: Comment[];
   createdAt: Date;
   updatedAt: Date;
+  tags: string[];
 }
 
 export interface Comment {
@@ -46,6 +48,12 @@ export interface Course {
   points: number;
   createdAt: Date;
   updatedAt: Date;
+  instructor: string;
+  level: string;
+  topics: string[];
+  enrolledCount: number;
+  rating: number;
+  reviews: Review[];
 }
 
 export interface CourseModule {
@@ -82,6 +90,14 @@ export interface Challenge {
   winners: string[];
   createdAt: Date;
   updatedAt: Date;
+  submissions: Submission[];
+}
+
+export interface Submission {
+  userId: string;
+  userName: string;
+  repositoryUrl: string;
+  submittedAt: Date;
 }
 
 export interface Badge {
@@ -93,7 +109,23 @@ export interface Badge {
   points: number;
 }
 
+export interface Review {
+  rating: number;
+  content: string;
+  userId: string;
+  userName: string;
+  createdAt: Date;
+}
+
 export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
+}
+
+export interface User {
+  uid: string;
+  email: string;
+  displayName: string;
+  photoURL?: string;
+  // Add any other properties as needed
 }
