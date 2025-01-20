@@ -21,8 +21,17 @@ import {
 } from "recharts";
 import Link from "next/link";
 import { UserProfile } from "@/lib/types";
+import { ParentRoute } from "@/components/auth/parent-route";
 
 export default function ParentDashboard() {
+  return (
+    <ParentRoute>
+      <ParentDashboardContent />
+    </ParentRoute>
+  );
+}
+
+function ParentDashboardContent() {
   const [children, setChildren] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

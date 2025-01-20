@@ -18,12 +18,21 @@ import {
   Cell,
 } from "recharts";
 import { UserProfile } from "@/lib/types";
+import { ParentRoute } from "@/components/auth/parent-route";
 
 export default function ChildDetailPage({
   params,
 }: {
   params: { id: string };
 }) {
+  return (
+    <ParentRoute>
+      <ChildDetailContent params={params} />
+    </ParentRoute>
+  );
+}
+
+function ChildDetailContent({ params }: { params: { id: string } }) {
   const [child, setChild] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
