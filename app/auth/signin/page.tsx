@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useAuth } from '@/lib/context/auth-context';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useAuth } from "@/lib/context/auth-context";
 
 export default function SignInPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isParentLogin, setIsParentLogin] = useState(true);
   const router = useRouter();
   const { signIn } = useAuth();
 
@@ -19,10 +20,18 @@ export default function SignInPage() {
     setLoading(true);
 
     try {
-      await signIn(email, password);
-      router.push('/');
+      if (isParentLogin) {
+        // Parent login with email
+        await signIn(identifier, password);
+      } else {
+        // Child login with username
+        // Generate the internal email from username
+        const email = `${identifier.toLowerCase()}_@youthopia.internal`;
+        await signIn(email, password);
+      }
+      router.push("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign in');
+      setError(err instanceof Error ? err.message : "Failed to sign in");
     } finally {
       setLoading(false);
     }
@@ -36,7 +45,7 @@ export default function SignInPage() {
             Sign in to your account
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            Or{' '}
+            Or{" "}
             <Link
               href="/auth/signup"
               className="font-medium text-primary hover:text-primary/80"
@@ -46,22 +55,47 @@ export default function SignInPage() {
           </p>
         </div>
 
+        <div className="flex justify-center space-x-4">
+          <button
+            type="button"
+            onClick={() => setIsParentLogin(true)}
+            className={`px-4 py-2 text-sm font-medium rounded-md ${
+              isParentLogin
+                ? "bg-primary text-white"
+                : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+            }`}
+          >
+            Parent Login
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsParentLogin(false)}
+            className={`px-4 py-2 text-sm font-medium rounded-md ${
+              !isParentLogin
+                ? "bg-primary text-white"
+                : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+            }`}
+          >
+            Child Login
+          </button>
+        </div>
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="-space-y-px rounded-md shadow-sm flex flex-col gap-3">
             <div>
-              <label htmlFor="email-address" className="sr-only">
-                Email address
+              <label htmlFor="identifier" className="sr-only">
+                {isParentLogin ? "Email address" : "Username"}
               </label>
               <input
-                id="email-address"
-                name="email"
-                type="email"
-                autoComplete="email"
+                id="identifier"
+                name="identifier"
+                type={isParentLogin ? "email" : "text"}
+                autoComplete={isParentLogin ? "email" : "username"}
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 className="relative block w-full rounded-t-md border-0 py-2 px-2 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 bg-white dark:bg-gray-950"
-                placeholder="Email address"
+                placeholder={isParentLogin ? "Email address" : "Username"}
               />
             </div>
             <div>
@@ -83,14 +117,16 @@ export default function SignInPage() {
           </div>
 
           <div className="flex items-center justify-between">
-            <div className="text-sm">
-              <Link
-                href="/auth/reset-password"
-                className="font-medium text-primary hover:text-primary/80"
-              >
-                Forgot your password?
-              </Link>
-            </div>
+            {isParentLogin && (
+              <div className="text-sm">
+                <Link
+                  href="/auth/reset-password"
+                  className="font-medium text-primary hover:text-primary/80"
+                >
+                  Forgot your password?
+                </Link>
+              </div>
+            )}
           </div>
 
           {error && (
@@ -114,7 +150,7 @@ export default function SignInPage() {
               disabled={loading}
               className="group relative flex w-full justify-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? "Signing in..." : "Sign in"}
             </button>
           </div>
         </form>

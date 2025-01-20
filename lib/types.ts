@@ -10,6 +10,10 @@ export interface UserProfile {
   completedCourses: string[];
   completedChallenges: string[];
   badges: string[];
+  accountType: "parent" | "child";
+  parentId?: string; // For child accounts, references their parent's uid
+  childAccounts?: string[]; // For parent accounts, array of child uids
+  username?: string; // For child accounts
 }
 
 export interface Post {
@@ -43,7 +47,7 @@ export interface Course {
   description: string;
   imageURL: string;
   modules: CourseModule[];
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  difficulty: "beginner" | "intermediate" | "advanced";
   duration: number; // in minutes
   points: number;
   createdAt: Date;
@@ -83,7 +87,7 @@ export interface Challenge {
   title: string;
   description: string;
   imageURL?: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  difficulty: "beginner" | "intermediate" | "advanced";
   points: number;
   deadline?: Date;
   participants: string[];

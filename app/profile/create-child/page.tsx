@@ -2,18 +2,23 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useAuth } from "@/lib/context/auth-context";
 import * as FirestoreService from "@/lib/services/firestore";
 
-export default function SignUpPage() {
-  const [email, setEmail] = useState("");
+export default function CreateChildAccountPage() {
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { signUp, updateUserProfile, user } = useAuth();
+  const { user } = useAuth();
+
+  // Redirect if not logged in or not a parent account
+  if (!user) {
+    router.push("/auth/signin");
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,30 +26,32 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      // Create the user with email and password
-      const userCredential = await signUp(email, password);
+      if (password !== confirmPassword) {
+        throw new Error("Passwords do not match");
+      }
 
-      // Update the user's display name
-      await updateUserProfile(displayName);
+      if (password.length < 6) {
+        throw new Error("Password must be at least 6 characters long");
+      }
 
-      // Create the user profile in Firestore
-      await FirestoreService.createUserProfile(userCredential.user.uid, {
-        uid: userCredential.user.uid,
-        email,
-        displayName,
-        photoURL: userCredential.user.photoURL || undefined,
-        bio: "",
-        points: 0,
-        completedCourses: [],
-        completedChallenges: [],
-        badges: [],
-        accountType: "parent",
-        childAccounts: [],
-      });
+      // Create child account in Firebase Auth
+      const childAccount = await FirestoreService.createChildAccount(
+        username,
+        password,
+        user.uid
+      );
 
-      router.push("/profile/create-child");
+      // Update parent's profile to include the new child account
+      await FirestoreService.updateParentChildAccounts(
+        user.uid,
+        childAccount.uid
+      );
+
+      router.push("/profile");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create account");
+      setError(
+        err instanceof Error ? err.message : "Failed to create child account"
+      );
     } finally {
       setLoading(false);
     }
@@ -55,57 +62,28 @@ export default function SignUpPage() {
       <div className="w-full max-w-md space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Create Parent Account
+            Create Child Account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            Already have an account?{" "}
-            <Link
-              href="/auth/signin"
-              className="font-medium text-primary hover:text-primary/80"
-            >
-              Sign in
-            </Link>
-          </p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
               <label
-                htmlFor="display-name"
+                htmlFor="username"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
-                Display Name
+                Username
               </label>
               <input
-                id="display-name"
-                name="displayName"
+                id="username"
+                name="username"
                 type="text"
                 required
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 bg-white dark:bg-gray-950"
-                placeholder="Your name"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="email-address"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Email address
-              </label>
-              <input
-                id="email-address"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 bg-white dark:bg-gray-950"
-                placeholder="Email address"
+                placeholder="Child's username"
               />
             </div>
 
@@ -120,12 +98,30 @@ export default function SignUpPage() {
                 id="password"
                 name="password"
                 type="password"
-                autoComplete="new-password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 bg-white dark:bg-gray-950"
                 placeholder="Password"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="confirm-password"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Confirm Password
+              </label>
+              <input
+                id="confirm-password"
+                name="confirmPassword"
+                type="password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 bg-white dark:bg-gray-950"
+                placeholder="Confirm password"
               />
             </div>
           </div>
@@ -151,7 +147,7 @@ export default function SignUpPage() {
               disabled={loading}
               className="group relative flex w-full justify-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Creating account..." : "Create Parent Account"}
+              {loading ? "Creating account..." : "Create Child Account"}
             </button>
           </div>
         </form>
