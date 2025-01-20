@@ -15,6 +15,9 @@ import {
   ResponsiveContainer,
   LineChart,
   Line,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 import Link from "next/link";
 import { UserProfile } from "@/lib/types";
@@ -82,6 +85,72 @@ export default function ParentDashboard() {
     { name: "Week 4", points: 470 },
   ];
 
+  const COLORS = [
+    "#4F46E5",
+    "#10B981",
+    "#F59E0B",
+    "#EC4899",
+    "#8B5CF6",
+    "#F97316",
+  ];
+
+  const learningData = children.map((child) => {
+    const totalChallenges = child.completedChallenges.length;
+    const successfulChallenges = child.completedChallenges.length;
+
+    return {
+      name: child.displayName,
+      streak: 0,
+      successRate:
+        totalChallenges > 0
+          ? Math.round((successfulChallenges / totalChallenges) * 100)
+          : 0,
+      badgeCount: child.badges.length,
+      topicsCompleted: child.completedCourses.reduce((acc, courseId) => {
+        const topic = "General";
+        acc[topic] = (acc[topic] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>),
+    };
+  });
+
+  // Transform topics data for visualization
+  const topicsData = Object.entries(
+    learningData.reduce((acc, child) => {
+      Object.entries(child.topicsCompleted).forEach(([topic, count]) => {
+        acc[topic] = (acc[topic] || 0) + count;
+      });
+      return acc;
+    }, {} as Record<string, number>)
+  ).map(([name, value]) => ({ name, value }));
+
+  const recentAchievements = [
+    {
+      childName: "John",
+      achievement: "Completed Python Basics",
+      points: 50,
+      date: "2024-03-15",
+    },
+    {
+      childName: "Emma",
+      achievement: "Solved Math Challenge",
+      points: 30,
+      date: "2024-03-14",
+    },
+    {
+      childName: "John",
+      achievement: "Earned Coding Badge",
+      points: 20,
+      date: "2024-03-13",
+    },
+  ];
+
+  const timeDistribution = [
+    { name: "Morning", value: 35 },
+    { name: "Afternoon", value: 40 },
+    { name: "Evening", value: 25 },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8">
@@ -95,7 +164,7 @@ export default function ParentDashboard() {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3 mb-8">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-4 mb-8">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
               Total Children
@@ -122,6 +191,19 @@ export default function ParentDashboard() {
             </h3>
             <p className="text-3xl font-bold text-primary">
               {children.reduce((acc, child) => acc + child.points, 0)}
+            </p>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              Average Points
+            </h3>
+            <p className="text-3xl font-bold text-primary">
+              {children.length > 0
+                ? Math.round(
+                    children.reduce((acc, child) => acc + child.points, 0) /
+                      children.length
+                  )
+                : 0}
             </p>
           </div>
         </div>
@@ -167,6 +249,162 @@ export default function ParentDashboard() {
                 </LineChart>
               </ResponsiveContainer>
             </div>
+          </div>
+        </div>
+
+        {/* Learning Progress Overview */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Learning Progress Overview
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Topics Distribution */}
+            <div>
+              <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Topics Distribution
+              </h4>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={topicsData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) =>
+                        `${name}: ${(percent * 100).toFixed(0)}%`
+                      }
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {topicsData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Challenge Success Rates */}
+            <div>
+              <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Challenge Success Rates
+              </h4>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={learningData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis domain={[0, 100]} />
+                    <Tooltip />
+                    <Bar
+                      dataKey="successRate"
+                      fill="#10B981"
+                      name="Success Rate (%)"
+                      label={{ position: "top" }}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Learning Streaks */}
+            <div>
+              <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Learning Streaks (Days)
+              </h4>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={learningData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar
+                      dataKey="streak"
+                      fill="#4F46E5"
+                      name="Current Streak"
+                      label={{ position: "top" }}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Badge Progress */}
+            <div>
+              <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Badge Progress
+              </h4>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={learningData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar
+                      dataKey="badgeCount"
+                      fill="#F59E0B"
+                      name="Badges Earned"
+                      label={{ position: "top" }}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Achievements */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Recent Achievements
+          </h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead>
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Child
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Achievement
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Points
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Date
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {recentAchievements.map((achievement, index) => (
+                  <tr key={index}>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">
+                      {achievement.childName}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">
+                      {achievement.achievement}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">
+                      +{achievement.points}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">
+                      {new Date(achievement.date).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 

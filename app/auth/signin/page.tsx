@@ -4,6 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/auth-context";
+import { collection, query, where, getDocs, limit } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { UserProfile } from "@/lib/types";
 
 export default function SignInPage() {
   const [identifier, setIdentifier] = useState("");
@@ -25,9 +28,21 @@ export default function SignInPage() {
         await signIn(identifier, password);
       } else {
         // Child login with username
-        // Generate the internal email from username
-        const email = `${identifier.toLowerCase()}_@youthopia.internal`;
-        await signIn(email, password);
+        // First, query Firestore to find the child account by username
+        const q = query(
+          collection(db, "users"),
+          where("username", "==", identifier),
+          where("accountType", "==", "child"),
+          limit(1)
+        );
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+          throw new Error("Child account not found");
+        }
+
+        const childProfile = querySnapshot.docs[0].data() as UserProfile;
+        await signIn(childProfile.email, password);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to sign in");

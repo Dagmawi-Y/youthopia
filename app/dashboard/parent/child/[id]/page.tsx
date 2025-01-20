@@ -29,6 +29,9 @@ export default function ChildDetailPage({
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { user } = useAuth();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -54,6 +57,25 @@ export default function ChildDetailPage({
 
     fetchChildProfile();
   }, [user, params.id, router]);
+
+  const handleDeleteChild = async () => {
+    if (!user || !child) return;
+
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      // Delete child's profile from Firestore
+      await FirestoreService.deleteUserProfile(child.uid);
+      // Remove child from parent's childAccounts
+      await FirestoreService.removeChildFromParent(user.uid, child.uid);
+      router.push("/dashboard/parent");
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : "Failed to delete child account"
+      );
+      setIsDeleting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -225,7 +247,7 @@ export default function ChildDetailPage({
                   {child.displayName}
                 </p>
               </div>
-              <div>
+              <div className="flex space-x-4">
                 <button
                   onClick={() =>
                     router.push(`/profile/edit-child/${child.uid}`)
@@ -234,10 +256,49 @@ export default function ChildDetailPage({
                 >
                   Edit Profile
                 </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
+                >
+                  Delete Account
+                </button>
               </div>
+              {deleteError && (
+                <div className="text-red-600 text-sm mt-2">{deleteError}</div>
+              )}
             </div>
           </div>
         </div>
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+              <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Delete Child Account
+              </h4>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Are you sure you want to delete {child.displayName}'s account?
+                This action cannot be undone.
+              </p>
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteChild}
+                  disabled={isDeleting}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+                >
+                  {isDeleting ? "Deleting..." : "Delete"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

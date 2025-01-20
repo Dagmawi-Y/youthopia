@@ -330,3 +330,31 @@ export const updateParentChildAccounts = async (
     updatedAt: serverTimestamp(),
   });
 };
+
+// Delete user profile
+export const deleteUserProfile = async (uid: string) => {
+  try {
+    const userRef = doc(db, "users", uid);
+    await deleteDoc(userRef);
+  } catch (error) {
+    console.error("Error deleting user profile:", error);
+    throw error;
+  }
+};
+
+// Remove child from parent's childAccounts
+export const removeChildFromParent = async (
+  parentId: string,
+  childId: string
+) => {
+  try {
+    const userRef = doc(db, "users", parentId);
+    await updateDoc(userRef, {
+      childAccounts: arrayRemove(childId),
+      updatedAt: serverTimestamp(),
+    });
+  } catch (error) {
+    console.error("Error removing child from parent:", error);
+    throw error;
+  }
+};
