@@ -32,6 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const [isSigningUp, setIsSigningUp] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -40,6 +41,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Get the ID token and store it in cookies
         const token = await getIdToken(user);
         Cookies.set("fb_auth_token", token, { expires: 7 });
+
+        // Only handle routing if not in sign-up process
+        if (!isSigningUp) {
+          try {
+            const userProfile = await FirestoreService.getUserProfile(user.uid);
+            if (userProfile) {
+              if (userProfile.accountType === "parent") {
+                router.push("/dashboard/parent");
+              } else {
+                router.push("/dashboard/child");
+              }
+            }
+          } catch (error) {
+            console.error("Error fetching user profile:", error);
+          }
+        }
       } else {
         // Remove the token when user is null
         Cookies.remove("fb_auth_token");
@@ -48,10 +65,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return unsubscribe;
-  }, []);
+  }, [router, isSigningUp]);
 
   const signUp = async (email: string, password: string) => {
-    return await createUserWithEmailAndPassword(auth, email, password);
+    setIsSigningUp(true);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      return userCredential;
+    } finally {
+      // Reset the flag after a short delay to allow the sign-up page to handle routing
+      setTimeout(() => setIsSigningUp(false), 1000);
+    }
   };
 
   const signIn = async (email: string, password: string) => {
