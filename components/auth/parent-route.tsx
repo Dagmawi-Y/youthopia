@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/context/auth-context";
 import * as FirestoreService from "@/lib/services/firestore";
@@ -8,6 +8,7 @@ import * as FirestoreService from "@/lib/services/firestore";
 export function ParentRoute({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, loading } = useAuth();
+  const [isVerifying, setIsVerifying] = useState(true);
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -20,11 +21,13 @@ export function ParentRoute({ children }: { children: React.ReactNode }) {
         try {
           const profile = await FirestoreService.getUserProfile(user.uid);
           if (!profile || profile.accountType !== "parent") {
-            router.push("/dashboard/child");
+            router.replace("/dashboard/child");
+            return;
           }
+          setIsVerifying(false);
         } catch (error) {
           console.error("Error checking user type:", error);
-          router.push("/dashboard/child");
+          router.replace("/dashboard/child");
         }
       }
     };
@@ -32,8 +35,12 @@ export function ParentRoute({ children }: { children: React.ReactNode }) {
     checkAccess();
   }, [router, user, loading]);
 
-  if (loading || !user) {
-    return null;
+  if (loading || !user || isVerifying) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">Loading...</div>
+      </div>
+    );
   }
 
   return <>{children}</>;
