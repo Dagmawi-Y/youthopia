@@ -29,7 +29,6 @@ export default function SignInPage() {
         const email = `${identifier.toLowerCase()}_@youthopia.internal`;
         await signIn(email, password);
       }
-      router.push("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to sign in");
     } finally {

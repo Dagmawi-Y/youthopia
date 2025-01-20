@@ -42,21 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const token = await getIdToken(user);
         Cookies.set("fb_auth_token", token, { expires: 7 });
 
-        // Only handle routing if not in sign-up process
-        if (!isSigningUp) {
-          try {
-            const userProfile = await FirestoreService.getUserProfile(user.uid);
-            if (userProfile) {
-              if (userProfile.accountType === "parent") {
-                router.push("/dashboard/parent");
-              } else {
-                router.push("/dashboard/child");
-              }
-            }
-          } catch (error) {
-            console.error("Error fetching user profile:", error);
-          }
-        }
+        // Skip routing as it's handled in sign-in/sign-up
       } else {
         // Remove the token when user is null
         Cookies.remove("fb_auth_token");
@@ -97,12 +83,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error("User profile not found");
       }
 
-      // Route based on account type
-      if (userProfile.accountType === "parent") {
-        router.push("/dashboard/parent");
-      } else {
-        router.push("/dashboard/child");
-      }
+      // Add a small delay and use router.replace for more forceful navigation
+      setTimeout(() => {
+        if (userProfile.accountType === "parent") {
+          router.replace("/dashboard/parent");
+        } else {
+          router.replace("/dashboard/child");
+        }
+      }, 100);
     } catch (error) {
       console.error("Sign in error:", error);
       throw error;

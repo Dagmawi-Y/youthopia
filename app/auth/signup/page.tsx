@@ -42,8 +42,10 @@ export default function SignUpPage() {
         childAccounts: [],
       });
 
-      // Route directly to parent dashboard without waiting for auth state change
-      router.push("/dashboard/parent");
+      // Route to parent dashboard with delay and replace
+      setTimeout(() => {
+        router.replace("/dashboard/parent");
+      }, 100);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create account");
     } finally {
