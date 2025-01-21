@@ -1,21 +1,132 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Palette, BookOpen, Trophy, Users } from "lucide-react";
+import {
+  ArrowRight,
+  Palette,
+  BookOpen,
+  Trophy,
+  Users,
+  Code,
+  Brush,
+  Music,
+  Camera,
+  Bot,
+  ChevronDown,
+} from "lucide-react";
 import Link from "next/link";
 import { FeatureCard } from "@/components/home/feature-card";
 import { GrainyBackground } from "@/components/ui/grainy-background";
+import Image from "next/image";
 import {
   motion,
   useScroll,
   useTransform,
   useSpring,
   useInView,
+  AnimatePresence,
 } from "framer-motion";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
+
+const skillCategories = [
+  {
+    title: "Coding & Robotics",
+    icon: Code,
+    color: "bg-blue-500",
+    items: [
+      "Scratch Programming",
+      "Python Basics",
+      "Robot Building",
+      "Game Design",
+    ],
+  },
+  {
+    title: "Arts & Crafts",
+    icon: Brush,
+    color: "bg-pink-500",
+    items: ["Drawing", "Painting", "Origami", "Sculpture"],
+  },
+  {
+    title: "Music & Sound",
+    icon: Music,
+    color: "bg-purple-500",
+    items: ["Basic Notes", "Rhythm Games", "Song Creation", "Digital Music"],
+  },
+  {
+    title: "Digital Media",
+    icon: Camera,
+    color: "bg-green-500",
+    items: ["Photography", "Video Editing", "Animation", "Graphic Design"],
+  },
+  {
+    title: "Science & Tech",
+    icon: Bot,
+    color: "bg-yellow-500",
+    items: ["Experiments", "3D Printing", "Electronics", "Nature Study"],
+  },
+];
+
+const steps = [
+  {
+    title: "Create Your Profile",
+    description: "Sign up and personalize your learning journey",
+    image: "/images/step1.png",
+  },
+  {
+    title: "Choose Your Skills",
+    description: "Pick from our wide range of exciting activities",
+    image: "/images/step2.png",
+  },
+  {
+    title: "Start Learning",
+    description: "Jump into interactive lessons and have fun!",
+    image: "/images/step3.png",
+  },
+];
+
+const testimonials = [
+  {
+    quote: "My kids love the creative projects and coding challenges!",
+    author: "Parent of 2",
+    rating: 5,
+  },
+  {
+    quote: "The interactive lessons make learning so much fun",
+    author: "Young Learner",
+    rating: 5,
+  },
+  {
+    quote: "Best platform for developing STEAM skills",
+    author: "Education Expert",
+    rating: 5,
+  },
+];
+
+const faqs = [
+  {
+    question: "What age group is Youthopia for?",
+    answer:
+      "Youthopia is designed for children aged 6-14 years old, with content tailored to different age groups and skill levels.",
+  },
+  {
+    question: "How does the learning process work?",
+    answer:
+      "Children learn through interactive projects, guided tutorials, and hands-on activities. Each lesson is gamified and includes rewards for completion.",
+  },
+  {
+    question: "Is parental supervision required?",
+    answer:
+      "While our platform is safe and child-friendly, we recommend parental supervision for younger children, especially during hands-on projects.",
+  },
+  {
+    question: "What equipment do we need?",
+    answer:
+      "Most activities only require a computer or tablet with internet access. Some projects might need basic art supplies or components that are easily available.",
+  },
+];
 
 export default function Home() {
   const containerRef = useRef(null);
@@ -40,6 +151,8 @@ export default function Home() {
     stiffness: 100,
     damping: 30,
   });
+
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
   useEffect(() => {
     // Hero section animations on mount
@@ -272,6 +385,215 @@ export default function Home() {
             </div>
           </div>
         </motion.div>
+
+        {/* Skills Explorer Section */}
+        <motion.section className="py-24 bg-gradient-to-b from-[#F6F7C4]/30 to-white dark:from-[#F6F7C4]/10 dark:to-gray-950">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                151 Skills To Explore
+              </h2>
+              <p className="text-lg text-gray-600 dark:text-gray-300">
+                Discover exciting new abilities and unleash your creativity
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {skillCategories.map((category, index) => (
+                <motion.div
+                  key={category.title}
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden"
+                  whileHover={{ y: -5 }}
+                >
+                  <div className={`p-6 ${category.color}/10`}>
+                    <category.icon className="w-8 h-8 text-gray-900 dark:text-white mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      {category.title}
+                    </h3>
+                    <ul className="mt-4 space-y-2">
+                      {category.items.map((item) => (
+                        <li
+                          key={item}
+                          className="text-gray-600 dark:text-gray-300 flex items-center"
+                        >
+                          <ArrowRight className="w-4 h-4 mr-2 text-[#7BD3EA]" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.section>
+
+        {/* Getting Started Steps */}
+        <motion.section className="py-24 bg-white dark:bg-gray-950">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                Get Started in 3 Simple Steps
+              </h2>
+              <p className="text-lg text-gray-600 dark:text-gray-300">
+                Begin your learning adventure with these easy steps
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {steps.map((step, index) => (
+                <motion.div
+                  key={step.title}
+                  initial={{ opacity: 0, x: 50 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.2 }}
+                  className="text-center"
+                >
+                  <div className="relative w-48 h-48 mx-auto mb-6">
+                    <Image
+                      src={step.image}
+                      alt={step.title}
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    {step.title}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {step.description}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.section>
+
+        {/* Testimonials Section */}
+        <motion.section className="py-24 bg-[#A1EEBD]/10 dark:bg-[#A1EEBD]/5">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                What Our Community Says
+              </h2>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {testimonials.map((testimonial, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg"
+                  whileHover={{ y: -5 }}
+                >
+                  <p className="text-gray-600 dark:text-gray-300 italic mb-4">
+                    "{testimonial.quote}"
+                  </p>
+                  <p className="text-gray-900 dark:text-white font-semibold">
+                    {testimonial.author}
+                  </p>
+                  <div className="flex justify-center mt-2">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <motion.span
+                        key={i}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: i * 0.1 }}
+                        className="text-yellow-400"
+                      >
+                        ★
+                      </motion.span>
+                    ))}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.section>
+
+        {/* FAQ Section */}
+        <motion.section className="py-24 bg-white dark:bg-gray-950">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                Frequently Asked Questions
+              </h2>
+            </motion.div>
+
+            <div className="space-y-4">
+              {faqs.map((faq, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
+                >
+                  <motion.button
+                    className="w-full px-6 py-4 flex justify-between items-center bg-gray-50 dark:bg-gray-800"
+                    onClick={() =>
+                      setExpandedFaq(expandedFaq === index ? null : index)
+                    }
+                  >
+                    <span className="text-left font-medium text-gray-900 dark:text-white">
+                      {faq.question}
+                    </span>
+                    <motion.div
+                      animate={{ rotate: expandedFaq === index ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <ChevronDown className="w-5 h-5 text-gray-500" />
+                    </motion.div>
+                  </motion.button>
+                  <AnimatePresence>
+                    {expandedFaq === index && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="px-6 py-4 bg-white dark:bg-gray-900"
+                      >
+                        <p className="text-gray-600 dark:text-gray-300">
+                          {faq.answer}
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.section>
 
         {/* CTA Section */}
         <motion.div
