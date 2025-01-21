@@ -188,13 +188,14 @@ const TypeWriter = () => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3 }}
+        className="bg-gradient-to-r from-[#7BD3EA] via-[#A1EEBD] to-[#F6F7C4] text-transparent bg-clip-text bg-gradient-size animate-gradient"
       >
         {currentText}
       </motion.span>
       <motion.span
         animate={{ opacity: [1, 0] }}
         transition={{ duration: 0.5, repeat: Infinity, repeatType: "reverse" }}
-        className="ml-1"
+        className="ml-1 text-[#7BD3EA]"
       >
         |
       </motion.span>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/context/auth-context";
 import * as FirestoreService from "@/lib/services/firestore";
@@ -23,11 +23,12 @@ import { ParentRoute } from "@/components/auth/parent-route";
 export default function ChildDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const resolvedParams = use(params);
   return (
     <ParentRoute>
-      <ChildDetailContent params={params} />
+      <ChildDetailContent params={resolvedParams} />
     </ParentRoute>
   );
 }

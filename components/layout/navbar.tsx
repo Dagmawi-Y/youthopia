@@ -59,6 +59,17 @@ export function Navbar() {
       return !["Activity", "Library"].includes(item.title);
     }
     return true;
+  }).map((item) => {
+    if (item.title === "Dashboard") {
+      return {
+        ...item,
+        href:
+          userProfile?.accountType === "parent"
+            ? "/dashboard/parent"
+            : "/dashboard/child",
+      };
+    }
+    return item;
   });
 
   return (
