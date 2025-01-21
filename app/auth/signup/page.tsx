@@ -21,13 +21,10 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      // Create the user with email and password
       const userCredential = await signUp(email, password);
 
-      // Update the user's display name
       await updateUserProfile(displayName);
 
-      // Create the user profile in Firestore
       await FirestoreService.createUserProfile(userCredential.user.uid, {
         uid: userCredential.user.uid,
         email,
@@ -42,7 +39,6 @@ export default function SignUpPage() {
         childAccounts: [],
       });
 
-      // Route to parent dashboard with delay and replace
       setTimeout(() => {
         router.replace("/dashboard/parent");
       }, 100);

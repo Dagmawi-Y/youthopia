@@ -76,7 +76,6 @@ function ParentDashboardContent() {
     );
   }
 
-  // Sample data for charts - replace with real data from your backend
   const activityData = [
     { name: "Mon", courses: 4, challenges: 2 },
     { name: "Tue", courses: 3, challenges: 1 },
@@ -123,7 +122,6 @@ function ParentDashboardContent() {
     };
   });
 
-  // Transform topics data for visualization
   const topicsData = Object.entries(
     learningData.reduce((acc, child) => {
       Object.entries(child.topicsCompleted).forEach(([topic, count]) => {

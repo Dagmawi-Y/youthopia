@@ -69,7 +69,6 @@ export default function ChildDashboard() {
     );
   }
 
-  // Sample data for charts - replace with real data
   const weeklyProgress = [
     { name: "Mon", points: 20 },
     { name: "Tue", points: 35 },

@@ -24,11 +24,8 @@ export default function SignInPage() {
 
     try {
       if (isParentLogin) {
-        // Parent login with email
         await signIn(identifier, password);
       } else {
-        // Child login with username
-        // First, query Firestore to find the child account by username
         const q = query(
           collection(db, "users"),
           where("username", "==", identifier),

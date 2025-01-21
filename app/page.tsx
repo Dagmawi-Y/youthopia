@@ -155,7 +155,6 @@ export default function Home() {
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
   useEffect(() => {
-    // Hero section animations on mount
     gsap.from(".hero-title", {
       y: 100,
       opacity: 0,
@@ -179,7 +178,6 @@ export default function Home() {
       ease: "back.out(1.7)",
     });
 
-    // Scroll-triggered animations
     gsap.to(".parallax-bg", {
       yPercent: 50,
       ease: "none",
