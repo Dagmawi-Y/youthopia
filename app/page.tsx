@@ -128,6 +128,80 @@ const faqs = [
   },
 ];
 
+// Add TypeWriter component
+const TypeWriter = () => {
+  const texts = [
+    "Welcome to Youthopia",
+    "Discover New Skills",
+    "Learn & Grow",
+    "Have Fun",
+  ];
+  const [currentTextIndex, setCurrentTextIndex] = useState(0);
+  const [currentText, setCurrentText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isWaiting, setIsWaiting] = useState(false);
+
+  useEffect(() => {
+    if (isWaiting) return;
+
+    const typeSpeed = isDeleting ? 30 : 80;
+    const currentFullText = texts[currentTextIndex];
+
+    const timeout = setTimeout(() => {
+      if (!isDeleting && !isWaiting) {
+        if (currentText.length < currentFullText.length) {
+          setCurrentText(currentFullText.slice(0, currentText.length + 1));
+        } else {
+          setIsWaiting(true);
+          setTimeout(() => {
+            setIsWaiting(false);
+            setIsDeleting(true);
+          }, 2000);
+        }
+      } else if (isDeleting && !isWaiting) {
+        if (currentText.length > 0) {
+          setCurrentText(currentFullText.slice(0, currentText.length - 1));
+        } else {
+          setIsDeleting(false);
+          setIsWaiting(true);
+          setTimeout(() => {
+            setIsWaiting(false);
+            setCurrentTextIndex((prev) => (prev + 1) % texts.length);
+          }, 500);
+        }
+      }
+    }, typeSpeed);
+
+    return () => clearTimeout(timeout);
+  }, [currentText, isDeleting, currentTextIndex, isWaiting, texts]);
+
+  return (
+    <motion.h1
+      className="text-4xl md:text-6xl font-bold text-center hero-title"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.span
+        key={currentTextIndex}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        {currentText}
+      </motion.span>
+      <motion.span
+        animate={{ opacity: [1, 0] }}
+        transition={{ duration: 0.5, repeat: Infinity, repeatType: "reverse" }}
+        className="ml-1"
+      >
+        |
+      </motion.span>
+    </motion.h1>
+  );
+};
+
 export default function Home() {
   const containerRef = useRef(null);
   const statsRef = useRef(null);
@@ -210,21 +284,7 @@ export default function Home() {
 
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-16">
             <div className="text-center relative z-10">
-              <motion.h1
-                className="hero-title text-6xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-7xl mb-8"
-                initial={{ opacity: 0, y: 100 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1, ease: "easeOut" }}
-              >
-                Welcome to{" "}
-                <motion.span
-                  className="bg-gradient-to-r from-[#7BD3EA] via-[#A1EEBD] to-[#F6F7C4] bg-clip-text text-transparent"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                >
-                  Youthopia
-                </motion.span>
-              </motion.h1>
+              <TypeWriter />
               <motion.p
                 className="hero-description mt-6 text-xl leading-8 text-gray-600 dark:text-gray-300 max-w-2xl mx-auto"
                 initial={{ opacity: 0, y: 50 }}
