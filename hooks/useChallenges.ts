@@ -1,9 +1,17 @@
-import { useState, useEffect } from 'react';
-import { collection, query, orderBy, limit, getDocs, startAfter, where } from 'firebase/firestore';
-import { db } from '../lib/firebase';
-import { Challenge } from '../lib/types';
-import { useAuth } from '../lib/context/auth-context';
-import * as FirestoreService from '../lib/services/firestore';
+import { useState, useEffect } from "react";
+import {
+  collection,
+  query,
+  orderBy,
+  limit,
+  getDocs,
+  startAfter,
+  where,
+} from "firebase/firestore";
+import { db } from "../lib/firebase";
+import { Challenge } from "../lib/types";
+import { useAuth } from "../lib/context/auth-context";
+import * as FirestoreService from "../lib/services/firestore";
 
 export const useChallenges = (limitCount = 10) => {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
@@ -13,13 +21,16 @@ export const useChallenges = (limitCount = 10) => {
   const [hasMore, setHasMore] = useState(true);
   const { user } = useAuth();
 
-  const fetchChallenges = async (lastVisible?: any, filters?: { difficulty?: string; active?: boolean }) => {
+  const fetchChallenges = async (
+    lastVisible?: any,
+    filters?: { difficulty?: string; active?: boolean }
+  ) => {
     try {
       setLoading(true);
-      const challengesRef = collection(db, 'challenges');
+      const challengesRef = collection(db, "challenges");
       let queryConstraints: any[] = [
-        orderBy('createdAt', 'desc'),
-        limit(limitCount)
+        orderBy("createdAt", "desc"),
+        limit(limitCount),
       ];
 
       if (lastVisible) {
@@ -27,18 +38,18 @@ export const useChallenges = (limitCount = 10) => {
       }
 
       if (filters?.difficulty) {
-        queryConstraints.push(where('difficulty', '==', filters.difficulty));
+        queryConstraints.push(where("difficulty", "==", filters.difficulty));
       }
 
       if (filters?.active) {
         const now = new Date();
-        queryConstraints.push(where('deadline', '>', now));
+        queryConstraints.push(where("deadline", ">", now));
       }
 
       const q = query(challengesRef, ...queryConstraints);
       const querySnapshot = await getDocs(q);
       const newChallenges: Challenge[] = [];
-      
+
       querySnapshot.forEach((doc) => {
         newChallenges.push(doc.data() as Challenge);
       });
@@ -53,7 +64,11 @@ export const useChallenges = (limitCount = 10) => {
       setHasMore(querySnapshot.docs.length === limitCount);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while fetching challenges');
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while fetching challenges"
+      );
     } finally {
       setLoading(false);
     }
@@ -70,35 +85,46 @@ export const useChallenges = (limitCount = 10) => {
       const challenge = await FirestoreService.getChallenge(challengeId);
       return challenge;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while fetching the challenge');
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while fetching the challenge"
+      );
       return null;
     }
   };
 
   const joinChallenge = async (challengeId: string) => {
     if (!user) return;
-    
+
     try {
       await FirestoreService.joinChallenge(challengeId, user.uid);
-      // Update local state
+
       setChallenges((prevChallenges) =>
         prevChallenges.map((challenge) =>
           challenge.id === challengeId
-            ? { ...challenge, participants: [...challenge.participants, user.uid] }
+            ? {
+                ...challenge,
+                participants: [...challenge.participants, user.uid],
+              }
             : challenge
         )
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while joining the challenge');
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while joining the challenge"
+      );
     }
   };
 
   const completeChallenge = async (challengeId: string) => {
     if (!user) return;
-    
+
     try {
       await FirestoreService.completeChallenge(user.uid, challengeId);
-      // Update local state
+
       setChallenges((prevChallenges) =>
         prevChallenges.map((challenge) =>
           challenge.id === challengeId
@@ -107,31 +133,39 @@ export const useChallenges = (limitCount = 10) => {
         )
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while completing the challenge');
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while completing the challenge"
+      );
     }
   };
 
   const getUserChallenges = async () => {
     if (!user) return [];
-    
+
     try {
-      const challengesRef = collection(db, 'challenges');
+      const challengesRef = collection(db, "challenges");
       const q = query(
         challengesRef,
-        where('participants', 'array-contains', user.uid),
-        orderBy('createdAt', 'desc')
+        where("participants", "array-contains", user.uid),
+        orderBy("createdAt", "desc")
       );
-      
+
       const querySnapshot = await getDocs(q);
       const userChallenges: Challenge[] = [];
-      
+
       querySnapshot.forEach((doc) => {
         userChallenges.push(doc.data() as Challenge);
       });
-      
+
       return userChallenges;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while fetching user challenges');
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while fetching user challenges"
+      );
       return [];
     }
   };
@@ -151,4 +185,4 @@ export const useChallenges = (limitCount = 10) => {
     completeChallenge,
     getUserChallenges,
   };
-}; 
+};

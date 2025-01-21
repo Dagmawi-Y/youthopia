@@ -1,9 +1,17 @@
-import { useState, useEffect } from 'react';
-import { collection, query, orderBy, limit, getDocs, startAfter, where } from 'firebase/firestore';
-import { db } from '../lib/firebase';
-import { Post } from '../lib/types';
-import { useAuth } from '../lib/context/auth-context';
-import * as FirestoreService from '../lib/services/firestore';
+import { useState, useEffect } from "react";
+import {
+  collection,
+  query,
+  orderBy,
+  limit,
+  getDocs,
+  startAfter,
+  where,
+} from "firebase/firestore";
+import { db } from "../lib/firebase";
+import { Post } from "../lib/types";
+import { useAuth } from "../lib/context/auth-context";
+import * as FirestoreService from "../lib/services/firestore";
 
 export const usePosts = (limitCount = 10) => {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -16,17 +24,13 @@ export const usePosts = (limitCount = 10) => {
   const fetchPosts = async (lastVisible?: any) => {
     try {
       setLoading(true);
-      const postsRef = collection(db, 'posts');
-      let q = query(
-        postsRef,
-        orderBy('createdAt', 'desc'),
-        limit(limitCount)
-      );
+      const postsRef = collection(db, "posts");
+      let q = query(postsRef, orderBy("createdAt", "desc"), limit(limitCount));
 
       if (lastVisible) {
         q = query(
           postsRef,
-          orderBy('createdAt', 'desc'),
+          orderBy("createdAt", "desc"),
           startAfter(lastVisible),
           limit(limitCount)
         );
@@ -34,7 +38,7 @@ export const usePosts = (limitCount = 10) => {
 
       const querySnapshot = await getDocs(q);
       const newPosts: Post[] = [];
-      
+
       querySnapshot.forEach((doc) => {
         newPosts.push(doc.data() as Post);
       });
@@ -49,7 +53,11 @@ export const usePosts = (limitCount = 10) => {
       setHasMore(querySnapshot.docs.length === limitCount);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while fetching posts');
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while fetching posts"
+      );
     } finally {
       setLoading(false);
     }
@@ -63,28 +71,31 @@ export const usePosts = (limitCount = 10) => {
 
   const createPost = async (content: string, imageURL?: string) => {
     if (!user) return;
-    
+
     try {
       await FirestoreService.createPost({
-          authorId: user.uid,
-          authorName: user.displayName || 'Anonymous',
-          authorPhotoURL: user.photoURL || undefined,
-          content,
-          imageURL,
-          title: '',
-          tags: []
+        authorId: user.uid,
+        authorName: user.displayName || "Anonymous",
+        authorPhotoURL: user.photoURL || undefined,
+        content,
+        imageURL,
+        title: "",
+        tags: [],
       });
-      
-      // Refresh posts
+
       fetchPosts();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while creating the post');
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while creating the post"
+      );
     }
   };
 
   const likePost = async (postId: string) => {
     if (!user) return;
-    
+
     try {
       await FirestoreService.likePost(postId, user.uid);
       setPosts((prevPosts) =>
@@ -95,13 +106,17 @@ export const usePosts = (limitCount = 10) => {
         )
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while liking the post');
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while liking the post"
+      );
     }
   };
 
   const unlikePost = async (postId: string) => {
     if (!user) return;
-    
+
     try {
       await FirestoreService.unlikePost(postId, user.uid);
       setPosts((prevPosts) =>
@@ -112,17 +127,21 @@ export const usePosts = (limitCount = 10) => {
         )
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while unliking the post');
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while unliking the post"
+      );
     }
   };
 
   const addComment = async (postId: string, content: string) => {
     if (!user) return;
-    
+
     try {
       const commentId = await FirestoreService.addComment(postId, {
         authorId: user.uid,
-        authorName: user.displayName || 'Anonymous',
+        authorName: user.displayName || "Anonymous",
         authorPhotoURL: user.photoURL || undefined,
         content,
       });
@@ -137,7 +156,7 @@ export const usePosts = (limitCount = 10) => {
                   {
                     id: commentId,
                     authorId: user.uid,
-                    authorName: user.displayName || 'Anonymous',
+                    authorName: user.displayName || "Anonymous",
                     authorPhotoURL: user.photoURL || undefined,
                     content,
                     createdAt: new Date(),
@@ -149,7 +168,11 @@ export const usePosts = (limitCount = 10) => {
         )
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while adding the comment');
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while adding the comment"
+      );
     }
   };
 
@@ -168,4 +191,4 @@ export const usePosts = (limitCount = 10) => {
     unlikePost,
     addComment,
   };
-}; 
+};

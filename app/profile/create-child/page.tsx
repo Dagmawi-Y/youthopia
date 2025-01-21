@@ -14,7 +14,6 @@ export default function CreateChildAccountPage() {
   const router = useRouter();
   const { user } = useAuth();
 
-  // Redirect if not logged in or not a parent account
   if (!user) {
     router.push("/auth/signin");
     return null;
@@ -34,14 +33,12 @@ export default function CreateChildAccountPage() {
         throw new Error("Password must be at least 6 characters long");
       }
 
-      // Create child account in Firebase Auth
       const childAccount = await FirestoreService.createChildAccount(
         username,
         password,
         user.uid
       );
 
-      // Update parent's profile to include the new child account
       await FirestoreService.updateParentChildAccounts(
         user.uid,
         childAccount.uid

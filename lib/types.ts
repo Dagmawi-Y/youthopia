@@ -11,9 +11,9 @@ export interface UserProfile {
   completedChallenges: string[];
   badges: string[];
   accountType: "parent" | "child";
-  parentId?: string; // For child accounts, references their parent's uid
-  childAccounts?: string[]; // For parent accounts, array of child uids
-  username?: string; // For child accounts
+  parentId?: string;
+  childAccounts?: string[];
+  username?: string;
 }
 
 export interface Post {
@@ -48,7 +48,7 @@ export interface Course {
   imageURL: string;
   modules: CourseModule[];
   difficulty: "beginner" | "intermediate" | "advanced";
-  duration: number; // in minutes
+  duration: number;
   points: number;
   createdAt: Date;
   updatedAt: Date;
@@ -138,5 +138,4 @@ export interface User {
   email: string;
   displayName: string;
   photoURL?: string;
-  // Add any other properties as needed
 }

@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
-import { UserProfile } from '../lib/types';
-import { useAuth } from '../lib/context/auth-context';
-import * as FirestoreService from '../lib/services/firestore';
+import { useState, useEffect } from "react";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { db } from "../lib/firebase";
+import { UserProfile } from "../lib/types";
+import { useAuth } from "../lib/context/auth-context";
+import * as FirestoreService from "../lib/services/firestore";
 
 export const useProfile = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -16,15 +16,21 @@ export const useProfile = () => {
       setLoading(true);
       setError(null);
       const profile = await FirestoreService.getUserProfile(userId);
-      
+
       if (!profile) {
-        throw new Error('Profile not found. Please try signing out and signing in again.');
+        throw new Error(
+          "Profile not found. Please try signing out and signing in again."
+        );
       }
-      
+
       setProfile(profile);
     } catch (err) {
-      console.error('Error fetching profile:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred while fetching profile');
+      console.error("Error fetching profile:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while fetching profile"
+      );
       setProfile(null);
     } finally {
       setLoading(false);
@@ -33,63 +39,68 @@ export const useProfile = () => {
 
   const updateProfile = async (data: Partial<UserProfile>) => {
     if (!user) {
-      setError('User not authenticated');
+      setError("User not authenticated");
       return;
     }
-    
+
     try {
       setError(null);
       await FirestoreService.updateUserProfile(user.uid, {
         ...data,
         updatedAt: new Date(),
       });
-      // Update local state
-      setProfile((prev) => prev ? { ...prev, ...data, updatedAt: new Date() } : null);
+
+      setProfile((prev) =>
+        prev ? { ...prev, ...data, updatedAt: new Date() } : null
+      );
     } catch (err) {
-      console.error('Error updating profile:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred while updating profile');
+      console.error("Error updating profile:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while updating profile"
+      );
     }
   };
 
   const uploadProfileImage = async (file: File) => {
     if (!user) {
-      setError('User not authenticated');
+      setError("User not authenticated");
       return null;
     }
-    
+
     try {
       setError(null);
-      
-      // Create a unique filename
+
       const timestamp = Date.now();
       const filename = `${user.uid}-${timestamp}-${file.name}`;
       const relativePath = `/uploads/profile-images/${filename}`;
       const fullPath = `/public${relativePath}`;
-      
-      // Create FormData for the file upload
+
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('path', fullPath);
-      
-      // Upload the file using the API route
-      const response = await fetch('/api/upload', {
-        method: 'POST',
+      formData.append("file", file);
+      formData.append("path", fullPath);
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
         body: formData,
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to upload image');
+        throw new Error("Failed to upload image");
       }
-      
-      // The URL will be relative to the public directory
+
       const imageUrl = relativePath;
-      
-      // Update profile with new image URL
+
       await updateProfile({ photoURL: imageUrl });
       return imageUrl;
     } catch (err) {
-      console.error('Error uploading profile image:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred while uploading profile image');
+      console.error("Error uploading profile image:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while uploading profile image"
+      );
       return null;
     }
   };
@@ -133,4 +144,4 @@ export const useProfile = () => {
     getBadges,
     getPoints,
   };
-}; 
+};

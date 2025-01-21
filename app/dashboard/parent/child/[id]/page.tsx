@@ -73,9 +73,8 @@ function ChildDetailContent({ params }: { params: { id: string } }) {
     setIsDeleting(true);
     setDeleteError(null);
     try {
-      // Delete child's profile from Firestore
       await FirestoreService.deleteUserProfile(child.uid);
-      // Remove child from parent's childAccounts
+
       await FirestoreService.removeChildFromParent(user.uid, child.uid);
       router.push("/dashboard/parent");
     } catch (err) {
@@ -104,7 +103,6 @@ function ChildDetailContent({ params }: { params: { id: string } }) {
     );
   }
 
-  // Sample data for charts - replace with real data
   const activityBreakdown = [
     { name: "Completed Courses", value: child.completedCourses.length },
     { name: "Completed Challenges", value: child.completedChallenges.length },

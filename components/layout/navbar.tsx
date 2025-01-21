@@ -54,7 +54,6 @@ export function Navbar() {
     }
   };
 
-  // Filter navigation items based on user type
   const filteredNavItems = NAVIGATION_ITEMS.filter((item) => {
     if (userProfile?.accountType === "parent") {
       return !["Activity", "Library"].includes(item.title);

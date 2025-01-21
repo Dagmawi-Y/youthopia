@@ -26,10 +26,8 @@ import type {
   Badge,
 } from "../types";
 
-// Export Firestore array operations
 export { arrayUnion, arrayRemove };
 
-// User Profile Operations
 export const createUserProfile = async (
   uid: string,
   data: Partial<UserProfile>
@@ -49,7 +47,6 @@ export const createUserProfile = async (
     updatedAt: serverTimestamp(),
   };
 
-  // Remove any undefined values
   Object.keys(profileData).forEach((key) => {
     if (profileData[key as keyof typeof profileData] === undefined) {
       delete profileData[key as keyof typeof profileData];
@@ -59,14 +56,12 @@ export const createUserProfile = async (
   await setDoc(userRef, profileData);
 };
 
-// Create a child account
 export const createChildAccount = async (
   username: string,
   password: string,
   parentId: string
 ) => {
   try {
-    // Create auth account with a generated email
     const email = `${username.toLowerCase()}_${Math.random()
       .toString(36)
       .substring(2)}@youthopia.internal`;
@@ -77,7 +72,6 @@ export const createChildAccount = async (
     );
     const childUid = userCredential.user.uid;
 
-    // Create child profile
     await createUserProfile(childUid, {
       uid: childUid,
       email,
@@ -98,7 +92,6 @@ export const createChildAccount = async (
   }
 };
 
-// Get child accounts for a parent
 export const getChildAccounts = async (parentId: string) => {
   try {
     const q = query(
@@ -143,7 +136,6 @@ export const updateUserProfile = async (
 ) => {
   const userRef = doc(db, "users", uid);
 
-  // Remove any undefined values
   const updateData = { ...data };
   Object.keys(updateData).forEach((key) => {
     if (updateData[key as keyof typeof updateData] === undefined) {
@@ -157,7 +149,6 @@ export const updateUserProfile = async (
   });
 };
 
-// Post Operations
 export const createPost = async (
   data: Omit<Post, "id" | "createdAt" | "updatedAt" | "likes" | "comments">
 ) => {
@@ -228,7 +219,6 @@ export const addComment = async (
   return commentId;
 };
 
-// Course Operations
 export const createCourse = async (
   data: Omit<Course, "id" | "createdAt" | "updatedAt">
 ) => {
@@ -257,7 +247,6 @@ export const completeCourse = async (userId: string, courseId: string) => {
   });
 };
 
-// Challenge Operations
 export const createChallenge = async (
   data: Omit<
     Challenge,
@@ -310,7 +299,6 @@ export const completeChallenge = async (
   ]);
 };
 
-// Badge Operations
 export const awardBadge = async (userId: string, badgeId: string) => {
   const userRef = doc(db, "users", userId);
   await updateDoc(userRef, {
@@ -319,7 +307,6 @@ export const awardBadge = async (userId: string, badgeId: string) => {
   });
 };
 
-// Update parent's child accounts
 export const updateParentChildAccounts = async (
   parentId: string,
   childId: string
@@ -331,7 +318,6 @@ export const updateParentChildAccounts = async (
   });
 };
 
-// Delete user profile
 export const deleteUserProfile = async (uid: string) => {
   try {
     const userRef = doc(db, "users", uid);
@@ -342,7 +328,6 @@ export const deleteUserProfile = async (uid: string) => {
   }
 };
 
-// Remove child from parent's childAccounts
 export const removeChildFromParent = async (
   parentId: string,
   childId: string

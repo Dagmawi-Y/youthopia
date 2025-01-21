@@ -38,13 +38,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       if (user) {
-        // Get the ID token and store it in cookies
         const token = await getIdToken(user);
         Cookies.set("fb_auth_token", token, { expires: 7 });
-
-        // Skip routing as it's handled in sign-in/sign-up
       } else {
-        // Remove the token when user is null
         Cookies.remove("fb_auth_token");
       }
       setLoading(false);
@@ -63,7 +59,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       );
       return userCredential;
     } finally {
-      // Reset the flag after a short delay to allow the sign-up page to handle routing
       setTimeout(() => setIsSigningUp(false), 1000);
     }
   };
@@ -83,7 +78,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error("User profile not found");
       }
 
-      // Add a small delay and use router.replace for more forceful navigation
       setTimeout(() => {
         if (userProfile.accountType === "parent") {
           router.replace("/dashboard/parent");
