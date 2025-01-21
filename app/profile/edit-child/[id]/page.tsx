@@ -10,6 +10,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ParentRoute } from "@/components/auth/parent-route";
 import { toast } from "@/hooks/use-toast";
+import Image from "next/image";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { storage } from "@/lib/firebase";
+import { updatePassword } from "firebase/auth";
 
 export default function EditChildPage({
   params,
@@ -29,11 +33,16 @@ function EditChildContent({ params }: { params: { id: string } }) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [childProfile, setChildProfile] = useState<UserProfile | null>(null);
   const [formData, setFormData] = useState({
     displayName: "",
     username: "",
+    password: "",
+    confirmPassword: "",
   });
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string>("");
 
   useEffect(() => {
     const fetchChildProfile = async () => {
@@ -49,9 +58,14 @@ function EditChildContent({ params }: { params: { id: string } }) {
         }
         setChildProfile(profile);
         setFormData({
-          displayName: profile.displayName,
-          username: profile.username,
+          displayName: profile.displayName || "",
+          username: profile.username || "",
+          password: "",
+          confirmPassword: "",
         });
+        if (profile.photoURL) {
+          setPhotoPreview(profile.photoURL);
+        }
       } catch (error) {
         toast({
           title: "Error",
@@ -70,16 +84,83 @@ function EditChildContent({ params }: { params: { id: string } }) {
     fetchChildProfile();
   }, [user, params.id, router]);
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadPhoto = async (): Promise<string | null> => {
+    if (!photoFile || !childProfile) return null;
+
+    const fileRef = ref(
+      storage,
+      `profile-photos/${childProfile.uid}/${photoFile.name}`
+    );
+    await uploadBytes(fileRef, photoFile);
+    return getDownloadURL(fileRef);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !childProfile) return;
 
+    if (formData.password && formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords do not match",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setSaving(true);
     try {
+      let photoURL = childProfile.photoURL;
+
+      if (photoFile) {
+        setUploadingPhoto(true);
+        const newPhotoURL = await uploadPhoto();
+        if (newPhotoURL) {
+          photoURL = newPhotoURL;
+        }
+        setUploadingPhoto(false);
+      }
+
+      // Update profile data
       await FirestoreService.updateUserProfile(childProfile.uid, {
         ...childProfile,
-        ...formData,
+        displayName: formData.displayName,
+        username: formData.username,
+        photoURL,
       });
+
+      // Update password if provided
+      if (formData.password) {
+        try {
+          // Note: This requires the child's auth object, you might need to adjust based on your auth setup
+          // This is just a placeholder - you'll need to implement the actual password update logic
+          // await updatePassword(childAuth, formData.password);
+          toast({
+            title: "Note",
+            description:
+              "Password update functionality needs to be implemented based on your auth setup",
+          });
+        } catch (error) {
+          toast({
+            title: "Warning",
+            description: "Profile updated but password change failed",
+            variant: "destructive",
+          });
+        }
+      }
+
       toast({
         title: "Success",
         description: "Child profile updated successfully",
@@ -130,6 +211,33 @@ function EditChildContent({ params }: { params: { id: string } }) {
             </h1>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Photo Upload Section */}
+              <div className="flex flex-col items-center space-y-4">
+                <div className="relative w-32 h-32">
+                  <Image
+                    src={photoPreview || "/images/default-avatar.png"}
+                    alt="Profile"
+                    fill
+                    className="rounded-full object-cover"
+                  />
+                </div>
+                <div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoChange}
+                    className="hidden"
+                    id="photo-upload"
+                  />
+                  <Label
+                    htmlFor="photo-upload"
+                    className="cursor-pointer bg-primary/10 hover:bg-primary/20 text-primary px-4 py-2 rounded-md"
+                  >
+                    Change Photo
+                  </Label>
+                </div>
+              </div>
+
               <div>
                 <Label htmlFor="displayName">Display Name</Label>
                 <Input
@@ -158,17 +266,51 @@ function EditChildContent({ params }: { params: { id: string } }) {
                 />
               </div>
 
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Change Password
+                </h3>
+                <div>
+                  <Label htmlFor="password">New Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) =>
+                      setFormData({ ...formData, password: e.target.value })
+                    }
+                    className="mt-1"
+                    placeholder="Leave blank to keep current password"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={formData.confirmPassword}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        confirmPassword: e.target.value,
+                      })
+                    }
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
               <div className="flex justify-end space-x-4">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => router.back()}
-                  disabled={saving}
+                  disabled={saving || uploadingPhoto}
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={saving}>
-                  {saving ? "Saving..." : "Save Changes"}
+                <Button type="submit" disabled={saving || uploadingPhoto}>
+                  {saving || uploadingPhoto ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
             </form>
