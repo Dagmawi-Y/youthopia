@@ -78,6 +78,9 @@ export const createChildAccount = async (
   parentId: string
 ) => {
   try {
+    // Store the current user
+    const currentUser = auth.currentUser;
+
     // Check username availability
     const isAvailable = await isUsernameAvailable(username);
     if (!isAvailable) {
@@ -105,6 +108,11 @@ export const createChildAccount = async (
       completedChallenges: [],
       badges: [],
     });
+
+    // Sign back in as the parent
+    if (currentUser) {
+      await auth.updateCurrentUser(currentUser);
+    }
 
     return userCredential.user;
   } catch (error) {

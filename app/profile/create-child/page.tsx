@@ -88,7 +88,9 @@ export default function CreateChildAccountPage() {
         user.uid,
         childAccount.uid
       );
-      router.push("/profile");
+
+      // Route to parent's view of the child's account instead of signing in
+      router.push(`/dashboard/parent/child/${childAccount.uid}`);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to create child account"
