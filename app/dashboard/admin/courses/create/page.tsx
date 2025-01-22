@@ -821,7 +821,9 @@ function RichTextEditor({
           </button>
           <button
             type="button"
-            onClick={() => editor.chain().focus().setHorizontalRule().run()}
+            onClick={() =>
+              editor.chain().focus().setHorizontalRule().enter().run()
+            }
             className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600"
             title="Horizontal Rule"
           >
@@ -929,7 +931,7 @@ function RichTextEditor({
       </div>
       <EditorContent
         editor={editor}
-        className="prose prose-sm dark:prose-invert max-w-none p-4 min-h-[200px] bg-white dark:bg-gray-700 focus:outline-none"
+        className="prose prose-sm dark:prose-invert max-w-none p-4 min-h-[200px] bg-white dark:bg-gray-700 focus:outline-none [&_hr]:border-t-2 [&_hr]:border-gray-300 dark:[&_hr]:border-gray-600 [&_hr]:my-4"
       />
       <LinkDialog
         isOpen={showLinkDialog}
