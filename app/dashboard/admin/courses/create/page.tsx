@@ -509,6 +509,7 @@ function RichTextEditor({
         {/* History Controls */}
         <div className="flex gap-1 mr-2 border-r border-gray-200 dark:border-gray-600 pr-2">
           <button
+            type="button"
             onClick={() => editor.chain().focus().undo().run()}
             disabled={!editor.can().undo()}
             className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50"
@@ -530,6 +531,7 @@ function RichTextEditor({
             </svg>
           </button>
           <button
+            type="button"
             onClick={() => editor.chain().focus().redo().run()}
             disabled={!editor.can().redo()}
             className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50"
@@ -555,6 +557,7 @@ function RichTextEditor({
         {/* Text Formatting */}
         <div className="flex gap-1 mr-2 border-r border-gray-200 dark:border-gray-600 pr-2">
           <button
+            type="button"
             onClick={() => editor.chain().focus().toggleBold().run()}
             className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 ${
               editor.isActive("bold") ? "bg-gray-200 dark:bg-gray-600" : ""
@@ -577,6 +580,7 @@ function RichTextEditor({
             </svg>
           </button>
           <button
+            type="button"
             onClick={() => editor.chain().focus().toggleItalic().run()}
             className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 ${
               editor.isActive("italic") ? "bg-gray-200 dark:bg-gray-600" : ""
@@ -600,6 +604,7 @@ function RichTextEditor({
         {/* Headings and Lists */}
         <div className="flex gap-1 mr-2 border-r border-gray-200 dark:border-gray-600 pr-2">
           <button
+            type="button"
             onClick={() =>
               editor.chain().focus().toggleHeading({ level: 2 }).run()
             }
@@ -626,6 +631,7 @@ function RichTextEditor({
             </svg>
           </button>
           <button
+            type="button"
             onClick={() => editor.chain().focus().toggleBulletList().run()}
             className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 ${
               editor.isActive("bulletList")
@@ -650,6 +656,7 @@ function RichTextEditor({
             </svg>
           </button>
           <button
+            type="button"
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
             className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 ${
               editor.isActive("orderedList")
@@ -678,6 +685,7 @@ function RichTextEditor({
         {/* Block Elements */}
         <div className="flex gap-1 mr-2 border-r border-gray-200 dark:border-gray-600 pr-2">
           <button
+            type="button"
             onClick={() => editor.chain().focus().toggleBlockquote().run()}
             className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 ${
               editor.isActive("blockquote")
@@ -702,6 +710,7 @@ function RichTextEditor({
             </svg>
           </button>
           <button
+            type="button"
             onClick={() => editor.chain().focus().setHorizontalRule().run()}
             className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600"
             title="Horizontal Rule"
@@ -726,6 +735,7 @@ function RichTextEditor({
         {/* Code */}
         <div className="flex gap-1 mr-2 border-r border-gray-200 dark:border-gray-600 pr-2">
           <button
+            type="button"
             onClick={() => editor.chain().focus().toggleCodeBlock().run()}
             className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 ${
               editor.isActive("codeBlock") ? "bg-gray-200 dark:bg-gray-600" : ""
@@ -752,6 +762,7 @@ function RichTextEditor({
         {/* Links and Media */}
         <div className="flex gap-1">
           <button
+            type="button"
             onClick={setLink}
             className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 ${
               editor.isActive("link") ? "bg-gray-200 dark:bg-gray-600" : ""
@@ -774,6 +785,7 @@ function RichTextEditor({
             </svg>
           </button>
           <button
+            type="button"
             onClick={addImage}
             className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600"
             title="Add Image"
