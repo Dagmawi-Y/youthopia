@@ -1,19 +1,19 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { useAuth } from '@/lib/context/auth-context';
-import { useProfile } from '@/hooks/useProfile';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { useAuth } from "@/lib/context/auth-context";
+import { useProfile } from "@/hooks/useProfile";
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
-  const [displayName, setDisplayName] = useState('');
-  const [bio, setBio] = useState('');
+  const [displayName, setDisplayName] = useState("");
+  const [bio, setBio] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  
+
   const router = useRouter();
   const { user } = useAuth();
   const {
@@ -30,21 +30,41 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!user) {
-      router.push('/auth/signin');
+      router.push("/auth/signin");
     }
   }, [user, router]);
 
   useEffect(() => {
     if (profile) {
       setDisplayName(profile.displayName);
-      setBio(profile.bio || '');
+      setBio(profile.bio || "");
     }
   }, [profile]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
+      // Clean up previous object URL if it exists
+      if (selectedImage) {
+        URL.revokeObjectURL(URL.createObjectURL(selectedImage));
+      }
       setSelectedImage(e.target.files[0]);
     }
+  };
+
+  // Clean up object URL on unmount
+  useEffect(() => {
+    return () => {
+      if (selectedImage) {
+        URL.revokeObjectURL(URL.createObjectURL(selectedImage));
+      }
+    };
+  }, [selectedImage]);
+
+  const getImagePreviewUrl = () => {
+    if (selectedImage) {
+      return URL.createObjectURL(selectedImage);
+    }
+    return profile?.photoURL || "/default-avatar.png";
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -56,7 +76,7 @@ export default function ProfilePage() {
       let photoURL = profile?.photoURL;
 
       if (selectedImage) {
-        photoURL = await uploadProfileImage(selectedImage) || undefined;
+        photoURL = (await uploadProfileImage(selectedImage)) || undefined;
       }
 
       await updateProfile({
@@ -67,10 +87,22 @@ export default function ProfilePage() {
 
       setIsEditing(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update profile');
+      setError(err instanceof Error ? err.message : "Failed to update profile");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancel = () => {
+    // Clean up object URL if there's a selected image
+    if (selectedImage) {
+      URL.revokeObjectURL(URL.createObjectURL(selectedImage));
+      setSelectedImage(null);
+    }
+    setIsEditing(false);
+    // Reset form to current profile values
+    setDisplayName(profile?.displayName || "");
+    setBio(profile?.bio || "");
   };
 
   if (profileLoading) {
@@ -98,8 +130,8 @@ export default function ProfilePage() {
               <div className="flex items-center space-x-4">
                 <div className="relative w-24 h-24">
                   <Image
-                    src={profile?.photoURL || '/default-avatar.png'}
-                    alt={profile?.displayName || 'Profile'}
+                    src={getImagePreviewUrl()}
+                    alt={profile?.displayName || "Profile"}
                     fill
                     className="rounded-full object-cover"
                   />
@@ -108,14 +140,16 @@ export default function ProfilePage() {
                   <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                     {profile?.displayName}
                   </h1>
-                  <p className="text-gray-600 dark:text-gray-400">{profile?.email}</p>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {profile?.email}
+                  </p>
                 </div>
               </div>
               <button
-                onClick={() => setIsEditing(!isEditing)}
+                onClick={isEditing ? handleCancel : () => setIsEditing(true)}
                 className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
               >
-                {isEditing ? 'Cancel' : 'Edit Profile'}
+                {isEditing ? "Cancel" : "Edit Profile"}
               </button>
             </div>
 
@@ -182,20 +216,24 @@ export default function ProfilePage() {
                   disabled={loading}
                   className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? 'Saving...' : 'Save Changes'}
+                  {loading ? "Saving..." : "Save Changes"}
                 </button>
               </form>
             ) : (
               <div className="space-y-8">
                 <div>
-                  <h2 className="text-lg font-medium text-gray-900 dark:text-white">Bio</h2>
+                  <h2 className="text-lg font-medium text-gray-900 dark:text-white">
+                    Bio
+                  </h2>
                   <p className="mt-1 text-gray-600 dark:text-gray-400">
-                    {profile?.bio || 'No bio yet'}
+                    {profile?.bio || "No bio yet"}
                   </p>
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-medium text-gray-900 dark:text-white">Stats</h2>
+                  <h2 className="text-lg font-medium text-gray-900 dark:text-white">
+                    Stats
+                  </h2>
                   <dl className="mt-2 grid grid-cols-1 gap-5 sm:grid-cols-3">
                     <div className="px-4 py-5 bg-gray-50 dark:bg-gray-900 shadow rounded-lg overflow-hidden sm:p-6">
                       <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
@@ -225,7 +263,9 @@ export default function ProfilePage() {
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-medium text-gray-900 dark:text-white">Badges</h2>
+                  <h2 className="text-lg font-medium text-gray-900 dark:text-white">
+                    Badges
+                  </h2>
                   <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
                     {profile?.badges.map((badge) => (
                       <div
