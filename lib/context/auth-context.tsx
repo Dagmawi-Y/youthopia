@@ -79,7 +79,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       setTimeout(() => {
-        if (userProfile.accountType === "parent") {
+        if (userProfile.role === "admin") {
+          router.replace("/dashboard/admin");
+        } else if (userProfile.accountType === "parent") {
           router.replace("/dashboard/parent");
         } else {
           router.replace("/dashboard/child");

@@ -20,16 +20,22 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
       try {
         const profile = await FirestoreService.getUserProfile(user.uid);
         if (!profile || profile.role !== "admin") {
-          router.push("/");
+          console.log("Not an admin, redirecting. Profile:", profile);
+          if (profile?.accountType === "parent") {
+            router.push("/dashboard/parent");
+          } else if (profile?.accountType === "child") {
+            router.push("/dashboard/child");
+          } else {
+            router.push("/");
+          }
           return;
         }
+        setLoading(false);
       } catch (error) {
         console.error("Error checking admin status:", error);
         router.push("/");
         return;
       }
-
-      setLoading(false);
     };
 
     checkAdmin();
@@ -38,7 +44,10 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">Loading...</div>
+        <div className="text-center">
+          <div className="mb-4 text-lg">Verifying admin access...</div>
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+        </div>
       </div>
     );
   }

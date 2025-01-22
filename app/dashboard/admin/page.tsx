@@ -46,13 +46,21 @@ function AdminDashboardContent() {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (!user) {
-      router.push("/auth/signin");
-      return;
-    }
+    const checkAndFetchData = async () => {
+      if (!user) {
+        router.push("/auth/signin");
+        return;
+      }
 
-    const fetchDashboardData = async () => {
       try {
+        // Verify admin status first
+        const profile = await FirestoreService.getUserProfile(user.uid);
+        if (!profile || profile.role !== "admin") {
+          console.log("Not an admin, redirecting from dashboard");
+          router.push("/");
+          return;
+        }
+
         // Fetch platform statistics
         const users = await FirestoreService.getAllUsers();
         const courses = await FirestoreService.getAllCourses();
@@ -88,7 +96,7 @@ function AdminDashboardContent() {
       }
     };
 
-    fetchDashboardData();
+    checkAndFetchData();
   }, [user, router]);
 
   if (loading) {
