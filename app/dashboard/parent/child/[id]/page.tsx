@@ -110,6 +110,11 @@ function ChildDetailContent({ params }: { params: { id: string } }) {
     { name: "Badges Earned", value: child.badges.length },
   ];
 
+  const hasAnyActivity =
+    child.completedCourses.length > 0 ||
+    child.completedChallenges.length > 0 ||
+    child.badges.length > 0;
+
   const COLORS = ["#4F46E5", "#10B981", "#F59E0B"];
 
   return (
@@ -164,73 +169,91 @@ function ChildDetailContent({ params }: { params: { id: string } }) {
           </div>
         </div>
 
-        {/* Activity Distribution */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Activity Distribution
-            </h3>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={activityBreakdown}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) =>
-                      `${name}: ${(percent * 100).toFixed(0)}%`
-                    }
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {activityBreakdown.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+        {hasAnyActivity ? (
+          <>
+            {/* Activity Distribution */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-8">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  Activity Distribution
+                </h3>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={activityBreakdown}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) =>
+                          `${name}: ${(percent * 100).toFixed(0)}%`
+                        }
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {activityBreakdown.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
 
-          {/* Recent Activity */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Recent Activity
-            </h3>
-            <div className="space-y-4">
-              {/* Replace with actual recent activity data */}
-              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <div>
-                  <p className="font-medium text-gray-900 dark:text-white">
-                    Completed Python Basics
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Course Completion
-                  </p>
+              {/* Recent Activity */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  Recent Activity
+                </h3>
+                <div className="space-y-4">
+                  {/* Replace with actual recent activity data */}
+                  <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        Completed Python Basics
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Course Completion
+                      </p>
+                    </div>
+                    <span className="text-primary">+50 points</span>
+                  </div>
+                  <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        Solved Coding Challenge
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Challenge Completion
+                      </p>
+                    </div>
+                    <span className="text-primary">+30 points</span>
+                  </div>
                 </div>
-                <span className="text-primary">+50 points</span>
-              </div>
-              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <div>
-                  <p className="font-medium text-gray-900 dark:text-white">
-                    Solved Coding Challenge
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Challenge Completion
-                  </p>
-                </div>
-                <span className="text-primary">+30 points</span>
               </div>
             </div>
+          </>
+        ) : (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-8 text-center">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              No Activity Yet
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              {child.displayName} hasn't completed any courses, challenges, or
+              earned any badges yet.
+            </p>
+            <p className="text-gray-600 dark:text-gray-400">
+              Encourage them to start their learning journey by exploring
+              courses and challenges!
+            </p>
           </div>
-        </div>
+        )}
 
         {/* Account Settings */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
