@@ -160,7 +160,7 @@ function ChallengesManagementContent() {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                   {challenge.deadline
-                    ? new Date(challenge.deadline).toLocaleDateString()
+                    ? challenge.deadline.toDate().toLocaleDateString()
                     : "No deadline"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">

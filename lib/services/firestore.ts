@@ -27,7 +27,7 @@ import type {
   Badge,
 } from "../types";
 
-export { arrayUnion, arrayRemove };
+export { arrayUnion, arrayRemove, serverTimestamp };
 
 export const onUserProfileChange = (
   uid: string,
@@ -324,9 +324,26 @@ export const createChallenge = async (
 };
 
 export const getChallenge = async (challengeId: string) => {
-  const challengeRef = doc(db, "challenges", challengeId);
-  const challengeSnap = await getDoc(challengeRef);
-  return challengeSnap.exists() ? (challengeSnap.data() as Challenge) : null;
+  try {
+    const challengeRef = doc(db, "challenges", challengeId);
+    const challengeSnap = await getDoc(challengeRef);
+
+    if (!challengeSnap.exists()) {
+      return null;
+    }
+
+    const data = challengeSnap.data();
+    return {
+      ...data,
+      id: challengeSnap.id,
+      createdAt: data.createdAt?.toDate() || new Date(),
+      updatedAt: data.updatedAt?.toDate() || new Date(),
+      deadline: data.deadline,
+    } as Challenge;
+  } catch (error) {
+    console.error("Error getting challenge:", error);
+    throw error;
+  }
 };
 
 export const joinChallenge = async (challengeId: string, userId: string) => {
@@ -520,4 +537,23 @@ export const removeBadge = async (userId: string, badgeId: string) => {
     console.error("Error removing badge:", error);
     throw error;
   }
+};
+
+export const updateChallenge = async (
+  challengeId: string,
+  data: Partial<Challenge>
+) => {
+  const challengeRef = doc(db, "challenges", challengeId);
+
+  const updateData = { ...data };
+  Object.keys(updateData).forEach((key) => {
+    if (updateData[key as keyof typeof updateData] === undefined) {
+      delete updateData[key as keyof typeof updateData];
+    }
+  });
+
+  await updateDoc(challengeRef, {
+    ...updateData,
+    updatedAt: serverTimestamp(),
+  });
 };

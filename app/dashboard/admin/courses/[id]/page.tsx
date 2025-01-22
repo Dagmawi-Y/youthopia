@@ -1,4 +1,4 @@
-import { EditCourseClient } from "./edit-course-client";
+import { EditCourseClient } from "./edit-course-client.js";
 
 interface EditCoursePageProps {
   params: { id: string };

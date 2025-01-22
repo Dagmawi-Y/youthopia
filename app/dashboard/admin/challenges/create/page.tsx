@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import * as FirestoreService from "@/lib/services/firestore";
 import { Challenge } from "@/lib/types";
 import { AdminRoute } from "../../../../../components/auth/admin-route";
+import { Timestamp } from "firebase/firestore";
 
 export default function CreateChallenge() {
   return (
@@ -166,8 +167,9 @@ function CreateChallengeContent() {
                 <input
                   type="datetime-local"
                   value={
-                    challengeData.deadline
-                      ? new Date(challengeData.deadline)
+                    challengeData.deadline instanceof Timestamp
+                      ? challengeData.deadline
+                          .toDate()
                           .toISOString()
                           .slice(0, 16)
                       : ""
@@ -176,7 +178,7 @@ function CreateChallengeContent() {
                     setChallengeData({
                       ...challengeData,
                       deadline: e.target.value
-                        ? new Date(e.target.value)
+                        ? Timestamp.fromDate(new Date(e.target.value))
                         : undefined,
                     })
                   }
