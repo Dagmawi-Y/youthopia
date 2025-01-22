@@ -51,11 +51,11 @@ export default function SettingsPage() {
         const profile = await FirestoreService.getUserProfile(user.uid);
         if (profile) {
           setUserProfile(profile);
-          // Load saved notification settings if they exist
+
           if (profile.notificationSettings) {
             setNotificationSettings(profile.notificationSettings);
           }
-          // Load saved privacy settings if they exist
+
           if (profile.privacySettings) {
             setPrivacySettings(profile.privacySettings);
           }

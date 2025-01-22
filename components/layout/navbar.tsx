@@ -35,7 +35,6 @@ export function Navbar() {
   useEffect(() => {
     if (!user) return;
 
-    // Set up real-time listener for user profile
     const unsubscribe = FirestoreService.onUserProfileChange(
       user.uid,
       (profile) => {
@@ -43,7 +42,6 @@ export function Navbar() {
       }
     );
 
-    // Cleanup subscription on unmount
     return () => unsubscribe();
   }, [user]);
 

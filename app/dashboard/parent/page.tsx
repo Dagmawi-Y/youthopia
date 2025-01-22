@@ -59,7 +59,6 @@ function ParentDashboardContent() {
         const childAccounts = await FirestoreService.getChildAccounts(user.uid);
         setChildren(childAccounts);
 
-        // Fetch activity details for each child
         const activities = {
           courses: [] as {
             id: string;
@@ -82,7 +81,6 @@ function ParentDashboardContent() {
         };
 
         for (const child of childAccounts) {
-          // Fetch course details
           for (const courseId of child.completedCourses) {
             try {
               const course = await FirestoreService.getCourse(courseId);
@@ -99,7 +97,6 @@ function ParentDashboardContent() {
             }
           }
 
-          // Fetch challenge details
           for (const challengeId of child.completedChallenges) {
             try {
               const challenge = await FirestoreService.getChallenge(
@@ -117,9 +114,6 @@ function ParentDashboardContent() {
               console.error(`Error fetching challenge ${challengeId}:`, err);
             }
           }
-
-          // For badges, we'll need to implement getBadge in FirestoreService
-          // For now, we'll skip badge details
         }
 
         setChildActivities(activities);

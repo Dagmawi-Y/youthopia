@@ -102,16 +102,13 @@ export const createChildAccount = async (
   parentId: string
 ) => {
   try {
-    // Store the current user
     const currentUser = auth.currentUser;
 
-    // Check username availability
     const isAvailable = await isUsernameAvailable(username);
     if (!isAvailable) {
       throw new Error("Username is already taken");
     }
 
-    // Create account with username as email prefix (no random string needed)
     const email = `${username.toLowerCase()}@youthopia.internal`;
     const userCredential = await createUserWithEmailAndPassword(
       auth,
@@ -133,7 +130,6 @@ export const createChildAccount = async (
       badges: [],
     });
 
-    // Sign back in as the parent
     if (currentUser) {
       await auth.updateCurrentUser(currentUser);
     }

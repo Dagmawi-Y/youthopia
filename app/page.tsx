@@ -128,7 +128,6 @@ const faqs = [
   },
 ];
 
-// Add TypeWriter component
 const TypeWriter = () => {
   const texts = [
     "Welcome to Youthopia",

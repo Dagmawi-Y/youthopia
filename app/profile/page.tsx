@@ -43,7 +43,6 @@ export default function ProfilePage() {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      // Clean up previous object URL if it exists
       if (selectedImage) {
         URL.revokeObjectURL(URL.createObjectURL(selectedImage));
       }
@@ -51,7 +50,6 @@ export default function ProfilePage() {
     }
   };
 
-  // Clean up object URL on unmount
   useEffect(() => {
     return () => {
       if (selectedImage) {
@@ -94,13 +92,12 @@ export default function ProfilePage() {
   };
 
   const handleCancel = () => {
-    // Clean up object URL if there's a selected image
     if (selectedImage) {
       URL.revokeObjectURL(URL.createObjectURL(selectedImage));
       setSelectedImage(null);
     }
     setIsEditing(false);
-    // Reset form to current profile values
+
     setDisplayName(profile?.displayName || "");
     setBio(profile?.bio || "");
   };

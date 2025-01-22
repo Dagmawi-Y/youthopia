@@ -39,7 +39,6 @@ export default function SignUpPage() {
         childAccounts: [],
       });
 
-      // Verify profile exists before redirecting
       let retries = 0;
       while (retries < 3) {
         const profile = await FirestoreService.getUserProfile(

@@ -89,7 +89,6 @@ export default function CreateChildAccountPage() {
         childAccount.uid
       );
 
-      // Route to parent's view of the child's account instead of signing in
       router.push(`/dashboard/parent/child/${childAccount.uid}`);
     } catch (err) {
       setError(

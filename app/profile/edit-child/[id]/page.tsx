@@ -142,7 +142,6 @@ function EditChildContent({ params }: { params: { id: string } }) {
         setUploadingPhoto(false);
       }
 
-      // Update profile data
       await FirestoreService.updateUserProfile(childProfile.uid, {
         ...childProfile,
         displayName: formData.displayName,
@@ -150,12 +149,8 @@ function EditChildContent({ params }: { params: { id: string } }) {
         photoURL,
       });
 
-      // Update password if provided
       if (formData.password) {
         try {
-          // Note: This requires the child's auth object, you might need to adjust based on your auth setup
-          // This is just a placeholder - you'll need to implement the actual password update logic
-          // await updatePassword(childAuth, formData.password);
           toast({
             title: "Note",
             description:

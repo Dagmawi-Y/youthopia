@@ -45,7 +45,6 @@ export default function ChildDashboard() {
         }
         setProfile(userProfile);
 
-        // Fetch course and challenge details
         const courseDetails = await Promise.all(
           userProfile.completedCourses.map(async (courseId) => {
             const course = await FirestoreService.getCourse(courseId);
@@ -92,7 +91,6 @@ export default function ChildDashboard() {
     fetchData();
   }, [user, router]);
 
-  // Calculate weekly progress from actual activity data
   const weeklyProgress = Array.from({ length: 7 }, (_, i) => {
     const date = new Date();
     date.setDate(date.getDate() - i);

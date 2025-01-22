@@ -53,7 +53,6 @@ function AdminDashboardContent() {
       }
 
       try {
-        // Verify admin status first
         const profile = await FirestoreService.getUserProfile(user.uid);
         if (!profile || profile.role !== "admin") {
           console.log("Not an admin, redirecting from dashboard");
@@ -61,7 +60,6 @@ function AdminDashboardContent() {
           return;
         }
 
-        // Fetch platform statistics
         const users = await FirestoreService.getAllUsers();
         const courses = await FirestoreService.getAllCourses();
         const challenges = await FirestoreService.getAllChallenges();
@@ -86,7 +84,6 @@ function AdminDashboardContent() {
           ),
         });
 
-        // Get recent courses and challenges
         setRecentCourses(courses.slice(0, 5));
         setChallenges(challenges.slice(0, 5));
       } catch (err) {
