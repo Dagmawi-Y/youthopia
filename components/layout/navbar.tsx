@@ -80,9 +80,11 @@ export function Navbar() {
             <Link
               href={
                 user
-                  ? userProfile?.accountType === "parent"
+                  ? userProfile?.role === "admin"
+                    ? "/dashboard/admin"
+                    : userProfile?.accountType === "parent"
                     ? "/dashboard/parent"
-                    : "/activity"
+                    : "/dashboard/child"
                   : "/"
               }
               className="flex items-center space-x-2"
