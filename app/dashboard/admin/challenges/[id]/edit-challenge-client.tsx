@@ -5,16 +5,7 @@ import { useRouter } from "next/navigation";
 import * as FirestoreService from "@/lib/services/firestore";
 import { Challenge } from "@/lib/types";
 import { AdminRoute } from "../../../../../components/auth/admin-route";
-import Image from "next/image";
 import { Timestamp } from "firebase/firestore";
-
-function LoadingState() {
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-    </div>
-  );
-}
 
 export function EditChallengeClient({ challengeId }: { challengeId: string }) {
   const router = useRouter();
@@ -63,7 +54,11 @@ export function EditChallengeClient({ challengeId }: { challengeId: string }) {
   };
 
   if (loading) {
-    return <LoadingState />;
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">Loading...</div>
+      </div>
+    );
   }
 
   if (error) {
@@ -84,21 +79,27 @@ export function EditChallengeClient({ challengeId }: { challengeId: string }) {
 
   return (
     <AdminRoute>
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             Edit Challenge: {challengeData.title}
           </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Update the challenge details below.
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-8">
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
               {/* Basic Information */}
-              <div className="space-y-4">
+              <div className="space-y-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  Basic Information
+                </h2>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Title
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Challenge Title
                   </label>
                   <input
                     type="text"
@@ -109,14 +110,15 @@ export function EditChallengeClient({ challengeId }: { challengeId: string }) {
                         title: e.target.value,
                       })
                     }
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-[#7BD3EA] focus:ring-2 focus:ring-[#7BD3EA] transition-colors"
+                    placeholder="Enter challenge title"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Description
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Challenge Description
                   </label>
                   <textarea
                     value={challengeData.description}
@@ -127,34 +129,55 @@ export function EditChallengeClient({ challengeId }: { challengeId: string }) {
                       })
                     }
                     rows={4}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-[#7BD3EA] focus:ring-2 focus:ring-[#7BD3EA] transition-colors"
+                    placeholder="Describe the challenge objectives and requirements"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Image URL
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Challenge Image URL
                   </label>
                   <input
                     type="url"
-                    value={challengeData.imageURL || ""}
+                    value={challengeData.imageURL}
                     onChange={(e) =>
                       setChallengeData({
                         ...challengeData,
                         imageURL: e.target.value,
                       })
                     }
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-[#7BD3EA] focus:ring-2 focus:ring-[#7BD3EA] transition-colors"
+                    placeholder="Enter image URL (optional)"
                   />
+                  {challengeData.imageURL && (
+                    <div className="mt-4 rounded-lg overflow-hidden w-48 h-32 bg-gray-100 dark:bg-gray-700">
+                      <img
+                        src={challengeData.imageURL}
+                        alt="Challenge preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                        onLoad={(e) => {
+                          (e.target as HTMLImageElement).style.display =
+                            "block";
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Challenge Details */}
-              <div className="space-y-4">
+              <div className="space-y-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  Challenge Details
+                </h2>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Difficulty
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Difficulty Level
                   </label>
                   <select
                     value={challengeData.difficulty}
@@ -164,7 +187,7 @@ export function EditChallengeClient({ challengeId }: { challengeId: string }) {
                         difficulty: e.target.value as Challenge["difficulty"],
                       })
                     }
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-[#7BD3EA] focus:ring-2 focus:ring-[#7BD3EA] transition-colors"
                     required
                   >
                     <option value="beginner">Beginner</option>
@@ -174,8 +197,8 @@ export function EditChallengeClient({ challengeId }: { challengeId: string }) {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Points
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Points Reward
                   </label>
                   <input
                     type="number"
@@ -187,19 +210,20 @@ export function EditChallengeClient({ challengeId }: { challengeId: string }) {
                       })
                     }
                     min="0"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-[#7BD3EA] focus:ring-2 focus:ring-[#7BD3EA] transition-colors"
+                    placeholder="Enter points value"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Deadline
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Submission Deadline
                   </label>
                   <input
                     type="datetime-local"
                     value={
-                      challengeData.deadline
+                      challengeData.deadline instanceof Timestamp
                         ? challengeData.deadline
                             .toDate()
                             .toISOString()
@@ -209,10 +233,13 @@ export function EditChallengeClient({ challengeId }: { challengeId: string }) {
                     onChange={(e) =>
                       setChallengeData({
                         ...challengeData,
-                        deadline: Timestamp.fromDate(new Date(e.target.value)),
+                        deadline: e.target.value
+                          ? Timestamp.fromDate(new Date(e.target.value))
+                          : undefined,
                       })
                     }
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-[#7BD3EA] focus:ring-2 focus:ring-[#7BD3EA] transition-colors"
+                    placeholder="Select deadline (optional)"
                   />
                 </div>
               </div>
@@ -220,21 +247,23 @@ export function EditChallengeClient({ challengeId }: { challengeId: string }) {
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm mt-2">Error: {error}</div>
+            <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-lg text-sm mt-4">
+              Error: {error}
+            </div>
           )}
 
           <div className="flex justify-end space-x-4">
             <button
               type="button"
               onClick={() => router.push("/dashboard/admin/challenges")}
-              className="bg-gray-100 text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+              className="px-6 py-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/80 transition-colors disabled:opacity-50"
+              className="px-6 py-3 rounded-lg bg-[#7BD3EA] hover:bg-[#7BD3EA]/90 text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? "Saving..." : "Save Changes"}
             </button>
