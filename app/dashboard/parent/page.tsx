@@ -35,6 +35,16 @@ function ParentDashboardContent() {
   const [children, setChildren] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [childActivities, setChildActivities] = useState<{
+    courses: { id: string; title: string; points: number; completedAt: Date }[];
+    challenges: {
+      id: string;
+      title: string;
+      points: number;
+      completedAt: Date;
+    }[];
+    badges: { id: string; title: string; points: number; earnedAt: Date }[];
+  }>({ courses: [], challenges: [], badges: [] });
   const router = useRouter();
   const { user } = useAuth();
 
@@ -48,6 +58,71 @@ function ParentDashboardContent() {
       try {
         const childAccounts = await FirestoreService.getChildAccounts(user.uid);
         setChildren(childAccounts);
+
+        // Fetch activity details for each child
+        const activities = {
+          courses: [] as {
+            id: string;
+            title: string;
+            points: number;
+            completedAt: Date;
+          }[],
+          challenges: [] as {
+            id: string;
+            title: string;
+            points: number;
+            completedAt: Date;
+          }[],
+          badges: [] as {
+            id: string;
+            title: string;
+            points: number;
+            earnedAt: Date;
+          }[],
+        };
+
+        for (const child of childAccounts) {
+          // Fetch course details
+          for (const courseId of child.completedCourses) {
+            try {
+              const course = await FirestoreService.getCourse(courseId);
+              if (course) {
+                activities.courses.push({
+                  id: courseId,
+                  title: course.title,
+                  points: course.points,
+                  completedAt: new Date(), // You might want to store completion dates in your data model
+                });
+              }
+            } catch (err) {
+              console.error(`Error fetching course ${courseId}:`, err);
+            }
+          }
+
+          // Fetch challenge details
+          for (const challengeId of child.completedChallenges) {
+            try {
+              const challenge = await FirestoreService.getChallenge(
+                challengeId
+              );
+              if (challenge) {
+                activities.challenges.push({
+                  id: challengeId,
+                  title: challenge.title,
+                  points: challenge.points,
+                  completedAt: new Date(), // You might want to store completion dates in your data model
+                });
+              }
+            } catch (err) {
+              console.error(`Error fetching challenge ${challengeId}:`, err);
+            }
+          }
+
+          // For badges, we'll need to implement getBadge in FirestoreService
+          // For now, we'll skip badge details
+        }
+
+        setChildActivities(activities);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to fetch children"
@@ -97,22 +172,51 @@ function ParentDashboardContent() {
     );
   }
 
-  const activityData = [
-    { name: "Mon", courses: 4, challenges: 2 },
-    { name: "Tue", courses: 3, challenges: 1 },
-    { name: "Wed", courses: 5, challenges: 3 },
-    { name: "Thu", courses: 2, challenges: 4 },
-    { name: "Fri", courses: 6, challenges: 2 },
-    { name: "Sat", courses: 4, challenges: 1 },
-    { name: "Sun", courses: 3, challenges: 2 },
-  ];
+  const activityData = Object.entries(
+    childActivities.courses
+      .concat(childActivities.challenges)
+      .reduce((acc, activity) => {
+        const day = new Date(activity.completedAt).toLocaleDateString("en-US", {
+          weekday: "short",
+        });
+        if (!acc[day]) {
+          acc[day] = { courses: 0, challenges: 0 };
+        }
+        if ("completedAt" in activity) {
+          acc[day].courses++;
+        } else {
+          acc[day].challenges++;
+        }
+        return acc;
+      }, {} as Record<string, { courses: number; challenges: number }>)
+  )
+    .map(([name, data]) => ({
+      name,
+      ...data,
+    }))
+    .sort((a, b) => {
+      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      return days.indexOf(a.name) - days.indexOf(b.name);
+    });
 
-  const progressData = [
-    { name: "Week 1", points: 120 },
-    { name: "Week 2", points: 250 },
-    { name: "Week 3", points: 380 },
-    { name: "Week 4", points: 470 },
-  ];
+  const progressData = Object.entries(
+    [...childActivities.courses, ...childActivities.challenges].reduce(
+      (acc, activity) => {
+        const week = Math.floor(
+          new Date(activity.completedAt).getTime() / (7 * 24 * 60 * 60 * 1000)
+        );
+        if (!acc[week]) {
+          acc[week] = { points: 0 };
+        }
+        acc[week].points += activity.points;
+        return acc;
+      },
+      {} as Record<number, { points: number }>
+    )
+  ).map(([week, data], index) => ({
+    name: `Week ${index + 1}`,
+    points: data.points,
+  }));
 
   const COLORS = [
     "#4F46E5",
@@ -151,33 +255,6 @@ function ParentDashboardContent() {
       return acc;
     }, {} as Record<string, number>)
   ).map(([name, value]) => ({ name, value }));
-
-  const recentAchievements = [
-    {
-      childName: "John",
-      achievement: "Completed Python Basics",
-      points: 50,
-      date: "2024-03-15",
-    },
-    {
-      childName: "Emma",
-      achievement: "Solved Math Challenge",
-      points: 30,
-      date: "2024-03-14",
-    },
-    {
-      childName: "John",
-      achievement: "Earned Coding Badge",
-      points: 20,
-      date: "2024-03-13",
-    },
-  ];
-
-  const timeDistribution = [
-    { name: "Morning", value: 35 },
-    { name: "Afternoon", value: 40 },
-    { name: "Evening", value: 25 },
-  ];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -243,17 +320,29 @@ function ParentDashboardContent() {
               Weekly Activity
             </h3>
             <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={activityData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="courses" fill="#4F46E5" name="Courses" />
-                  <Bar dataKey="challenges" fill="#10B981" name="Challenges" />
-                </BarChart>
-              </ResponsiveContainer>
+              {activityData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={activityData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="courses" fill="#4F46E5" name="Courses" />
+                    <Bar
+                      dataKey="challenges"
+                      fill="#10B981"
+                      name="Challenges"
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center">
+                  <p className="text-gray-500 dark:text-gray-400">
+                    No activity data available yet
+                  </p>
+                </div>
+              )}
             </div>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
@@ -261,21 +350,29 @@ function ParentDashboardContent() {
               Points Progress
             </h3>
             <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={progressData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="points"
-                    stroke="#4F46E5"
-                    name="Points"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              {progressData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={progressData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="points"
+                      stroke="#4F46E5"
+                      name="Points"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center">
+                  <p className="text-gray-500 dark:text-gray-400">
+                    No points data available yet
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -292,31 +389,39 @@ function ParentDashboardContent() {
                 Topics Distribution
               </h4>
               <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={topicsData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) =>
-                        `${name}: ${(percent * 100).toFixed(0)}%`
-                      }
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {topicsData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+                {topicsData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={topicsData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) =>
+                          `${name}: ${(percent * 100).toFixed(0)}%`
+                        }
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {topicsData.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <p className="text-gray-500 dark:text-gray-400">
+                      No topic data available yet
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -326,20 +431,28 @@ function ParentDashboardContent() {
                 Challenge Success Rates
               </h4>
               <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={learningData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis domain={[0, 100]} />
-                    <Tooltip />
-                    <Bar
-                      dataKey="successRate"
-                      fill="#10B981"
-                      name="Success Rate (%)"
-                      label={{ position: "top" }}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
+                {learningData.some((data) => data.successRate > 0) ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={learningData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis domain={[0, 100]} />
+                      <Tooltip />
+                      <Bar
+                        dataKey="successRate"
+                        fill="#10B981"
+                        name="Success Rate (%)"
+                        label={{ position: "top" }}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <p className="text-gray-500 dark:text-gray-400">
+                      No challenge data available yet
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -349,20 +462,28 @@ function ParentDashboardContent() {
                 Learning Streaks (Days)
               </h4>
               <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={learningData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar
-                      dataKey="streak"
-                      fill="#4F46E5"
-                      name="Current Streak"
-                      label={{ position: "top" }}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
+                {learningData.some((data) => data.streak > 0) ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={learningData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar
+                        dataKey="streak"
+                        fill="#4F46E5"
+                        name="Current Streak"
+                        label={{ position: "top" }}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <p className="text-gray-500 dark:text-gray-400">
+                      No streak data available yet
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -372,20 +493,28 @@ function ParentDashboardContent() {
                 Badge Progress
               </h4>
               <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={learningData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar
-                      dataKey="badgeCount"
-                      fill="#F59E0B"
-                      name="Badges Earned"
-                      label={{ position: "top" }}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
+                {learningData.some((data) => data.badgeCount > 0) ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={learningData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar
+                        dataKey="badgeCount"
+                        fill="#F59E0B"
+                        name="Badges Earned"
+                        label={{ position: "top" }}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <p className="text-gray-500 dark:text-gray-400">
+                      No badges earned yet
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -396,44 +525,63 @@ function ParentDashboardContent() {
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Recent Achievements
           </h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead>
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Child
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Achievement
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Points
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Date
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {recentAchievements.map((achievement, index) => (
-                  <tr key={index}>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">
-                      {achievement.childName}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">
-                      {achievement.achievement}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">
-                      +{achievement.points}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">
-                      {new Date(achievement.date).toLocaleDateString()}
-                    </td>
+          {[...childActivities.courses, ...childActivities.challenges].length >
+          0 ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead>
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Child
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Achievement
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Points
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Date
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {[...childActivities.courses, ...childActivities.challenges]
+                    .sort(
+                      (a, b) =>
+                        b.completedAt.getTime() - a.completedAt.getTime()
+                    )
+                    .slice(0, 5)
+                    .map((activity, index) => (
+                      <tr key={index}>
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">
+                          {children.find(
+                            (child) =>
+                              child.completedCourses.includes(activity.id) ||
+                              child.completedChallenges.includes(activity.id)
+                          )?.displayName || "Unknown"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">
+                          {activity.title}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">
+                          +{activity.points}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">
+                          {activity.completedAt.toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500 dark:text-gray-400">
+                No achievements yet
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Children List */}
