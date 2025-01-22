@@ -13,6 +13,12 @@ import Link from "@tiptap/extension-link";
 import CodeBlock from "@tiptap/extension-code-block";
 import Image from "@tiptap/extension-image";
 
+const isValidYoutubeUrl = (url: string) => {
+  const youtubeRegex =
+    /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+  return youtubeRegex.test(url);
+};
+
 export default function CreateCourse() {
   return (
     <AdminRoute>
@@ -314,7 +320,7 @@ function CreateCourseContent() {
                     </svg>
                   </button>
                 </div>
-                {module.videoURL && (
+                {module.videoURL && isValidYoutubeUrl(module.videoURL) && (
                   <div className="mt-4 aspect-video rounded-lg overflow-hidden bg-black">
                     <iframe
                       src={(module.videoURL as string).replace(
@@ -390,19 +396,27 @@ function CreateCourseContent() {
                   className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-[#7BD3EA] focus:ring-2 focus:ring-[#7BD3EA] transition-colors"
                   placeholder="Enter YouTube video URL"
                 />
-                {currentModule.videoURL && (
-                  <div className="mt-4 aspect-video rounded-lg overflow-hidden bg-black">
-                    <iframe
-                      src={(currentModule.videoURL as string).replace(
-                        "watch?v=",
-                        "embed/"
-                      )}
-                      className="w-full h-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  </div>
-                )}
+                {currentModule.videoURL &&
+                  isValidYoutubeUrl(currentModule.videoURL) && (
+                    <div className="mt-4 aspect-video rounded-lg overflow-hidden bg-black">
+                      <iframe
+                        src={(currentModule.videoURL as string).replace(
+                          "watch?v=",
+                          "embed/"
+                        )}
+                        className="w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  )}
+                {currentModule.videoURL &&
+                  !isValidYoutubeUrl(currentModule.videoURL) && (
+                    <div className="mt-2 text-sm text-amber-600 dark:text-amber-400">
+                      Please enter a valid YouTube URL (e.g.,
+                      https://youtube.com/watch?v=...)
+                    </div>
+                  )}
               </div>
 
               <button
@@ -456,6 +470,88 @@ function CreateCourseContent() {
   );
 }
 
+function LinkDialog({
+  isOpen,
+  onClose,
+  onSave,
+  hasSelectedText,
+  initialUrl = "",
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (url: string, text?: string) => void;
+  hasSelectedText: boolean;
+  initialUrl?: string;
+}) {
+  const [url, setUrl] = useState(initialUrl);
+  const [text, setText] = useState("");
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+          {hasSelectedText ? "Add Link" : "Add Link with Text"}
+        </h3>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              URL
+            </label>
+            <input
+              type="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-[#7BD3EA] focus:ring-2 focus:ring-[#7BD3EA]"
+              placeholder="https://"
+              autoFocus
+            />
+          </div>
+          {!hasSelectedText && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Text
+              </label>
+              <input
+                type="text"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-[#7BD3EA] focus:ring-2 focus:ring-[#7BD3EA]"
+                placeholder="Link text"
+              />
+            </div>
+          )}
+        </div>
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (url) {
+                onSave(url, !hasSelectedText ? text : undefined);
+                setUrl("");
+                setText("");
+                onClose();
+              }
+            }}
+            disabled={!url || (!hasSelectedText && !text)}
+            className="px-4 py-2 rounded-lg bg-[#7BD3EA] hover:bg-[#7BD3EA]/90 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function RichTextEditor({
   content,
   onChange,
@@ -463,6 +559,7 @@ function RichTextEditor({
   content: string | undefined;
   onChange: (html: string) => void;
 }) {
+  const [showLinkDialog, setShowLinkDialog] = useState(false);
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -509,46 +606,7 @@ function RichTextEditor({
     const selection = editor?.state.selection;
     const hasText = !selection?.empty;
 
-    if (hasText) {
-      const url = window.prompt("Enter URL:", previousUrl);
-      if (url === null) {
-        return; // User canceled
-      }
-
-      if (url === "") {
-        editor?.chain().focus().unsetLink().run();
-        return;
-      }
-
-      editor?.chain().focus().setLink({ href: url }).run();
-    } else {
-      const url = window.prompt("Enter URL:");
-      if (url === null) {
-        return; // User canceled
-      }
-
-      if (url) {
-        const text = window.prompt("Enter link text:");
-        if (text === null) {
-          return; // User canceled
-        }
-
-        editor
-          ?.chain()
-          .focus()
-          .insertContent({
-            type: "text",
-            text: text,
-            marks: [
-              {
-                type: "link",
-                attrs: { href: url },
-              },
-            ],
-          })
-          .run();
-      }
-    }
+    setShowLinkDialog(true);
   };
 
   if (!editor) {
@@ -872,6 +930,32 @@ function RichTextEditor({
       <EditorContent
         editor={editor}
         className="prose prose-sm dark:prose-invert max-w-none p-4 min-h-[200px] bg-white dark:bg-gray-700 focus:outline-none"
+      />
+      <LinkDialog
+        isOpen={showLinkDialog}
+        onClose={() => setShowLinkDialog(false)}
+        hasSelectedText={!editor?.state.selection.empty}
+        initialUrl={editor?.getAttributes("link").href}
+        onSave={(url, text) => {
+          if (!editor?.state.selection.empty) {
+            editor?.chain().focus().setLink({ href: url }).run();
+          } else if (text) {
+            editor
+              ?.chain()
+              .focus()
+              .insertContent({
+                type: "text",
+                text: text,
+                marks: [
+                  {
+                    type: "link",
+                    attrs: { href: url },
+                  },
+                ],
+              })
+              .run();
+          }
+        }}
       />
     </div>
   );
