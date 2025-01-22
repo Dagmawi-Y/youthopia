@@ -144,9 +144,9 @@ export function Navbar() {
           <div className="flex items-center space-x-4">
             {user ? (
               <>
-                <Button className="bg-[#7BD3EA] hover:bg-[#A1EEBD] text-black dark:text-white rounded-full">
+                {/* <Button className="bg-[#7BD3EA] hover:bg-[#A1EEBD] text-black dark:text-white rounded-full">
                   Verify Profile
-                </Button>
+                </Button> */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button className="relative h-10 w-10 rounded-full">

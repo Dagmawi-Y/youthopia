@@ -147,6 +147,7 @@ export const getChildAccounts = async (parentId: string) => {
 };
 
 export const getUserProfile = async (uid: string) => {
+  console.log({ uid });
   try {
     const userRef = doc(db, "users", uid);
     const userSnap = await getDoc(userRef);

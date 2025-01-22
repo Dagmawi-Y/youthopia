@@ -39,9 +39,23 @@ export default function SignUpPage() {
         childAccounts: [],
       });
 
-      setTimeout(() => {
-        router.replace("/dashboard/parent");
-      }, 100);
+      // Verify profile exists before redirecting
+      let retries = 0;
+      while (retries < 3) {
+        const profile = await FirestoreService.getUserProfile(
+          userCredential.user.uid
+        );
+        if (profile) {
+          router.replace("/dashboard/parent");
+          return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        retries++;
+      }
+
+      setError(
+        "Profile creation took longer than expected. Please try refreshing the page."
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create account");
     } finally {
