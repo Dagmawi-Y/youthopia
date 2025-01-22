@@ -52,21 +52,27 @@ function CreateChallengeContent() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 max-w-5xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
           Create New Challenge
         </h1>
+        <p className="text-gray-600 dark:text-gray-400">
+          Fill in the details below to create a new challenge.
+        </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <form onSubmit={handleSubmit} className="space-y-8">
+        <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-8">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
             {/* Basic Information */}
-            <div className="space-y-4">
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                Basic Information
+              </h2>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Title
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Challenge Title
                 </label>
                 <input
                   type="text"
@@ -77,14 +83,15 @@ function CreateChallengeContent() {
                       title: e.target.value,
                     })
                   }
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-[#7BD3EA] focus:ring-2 focus:ring-[#7BD3EA] transition-colors"
+                  placeholder="Enter challenge title"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Description
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Challenge Description
                 </label>
                 <textarea
                   value={challengeData.description}
@@ -95,14 +102,15 @@ function CreateChallengeContent() {
                     })
                   }
                   rows={4}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-[#7BD3EA] focus:ring-2 focus:ring-[#7BD3EA] transition-colors"
+                  placeholder="Describe the challenge objectives and requirements"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Image URL (optional)
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Challenge Image URL
                 </label>
                 <input
                   type="url"
@@ -113,16 +121,20 @@ function CreateChallengeContent() {
                       imageURL: e.target.value,
                     })
                   }
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-[#7BD3EA] focus:ring-2 focus:ring-[#7BD3EA] transition-colors"
+                  placeholder="Enter image URL (optional)"
                 />
               </div>
             </div>
 
             {/* Challenge Details */}
-            <div className="space-y-4">
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                Challenge Details
+              </h2>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Difficulty
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Difficulty Level
                 </label>
                 <select
                   value={challengeData.difficulty}
@@ -132,7 +144,7 @@ function CreateChallengeContent() {
                       difficulty: e.target.value as Challenge["difficulty"],
                     })
                   }
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-[#7BD3EA] focus:ring-2 focus:ring-[#7BD3EA] transition-colors"
                   required
                 >
                   <option value="beginner">Beginner</option>
@@ -142,8 +154,8 @@ function CreateChallengeContent() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Points
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Points Reward
                 </label>
                 <input
                   type="number"
@@ -155,14 +167,15 @@ function CreateChallengeContent() {
                     })
                   }
                   min="0"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-[#7BD3EA] focus:ring-2 focus:ring-[#7BD3EA] transition-colors"
+                  placeholder="Enter points value"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Deadline (optional)
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Submission Deadline
                 </label>
                 <input
                   type="datetime-local"
@@ -182,7 +195,8 @@ function CreateChallengeContent() {
                         : undefined,
                     })
                   }
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-[#7BD3EA] focus:ring-2 focus:ring-[#7BD3EA] transition-colors"
+                  placeholder="Select deadline (optional)"
                 />
               </div>
             </div>
@@ -190,21 +204,23 @@ function CreateChallengeContent() {
         </div>
 
         {error && (
-          <div className="text-red-600 text-sm mt-2">Error: {error}</div>
+          <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-lg text-sm mt-4">
+            Error: {error}
+          </div>
         )}
 
         <div className="flex justify-end space-x-4">
           <button
             type="button"
             onClick={() => router.push("/dashboard/admin/challenges")}
-            className="bg-gray-100 text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+            className="px-6 py-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={loading}
-            className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/80 transition-colors disabled:opacity-50"
+            className="px-6 py-3 rounded-lg bg-[#7BD3EA] hover:bg-[#7BD3EA]/90 text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Creating..." : "Create Challenge"}
           </button>
