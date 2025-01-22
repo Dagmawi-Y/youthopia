@@ -81,10 +81,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setTimeout(() => {
         if (userProfile.role === "admin") {
           router.replace("/dashboard/admin");
-        } else if (userProfile.accountType === "parent") {
-          router.replace("/dashboard/parent");
         } else {
-          router.replace("/dashboard/child");
+          if (userProfile.accountType === "parent") {
+            router.replace("/dashboard/parent");
+          } else if (userProfile.accountType === "child") {
+            router.replace("/dashboard/child");
+          } else {
+            throw new Error("Invalid account type");
+          }
         }
       }, 100);
     } catch (error) {
