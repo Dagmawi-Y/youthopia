@@ -162,6 +162,21 @@ function CreateCourseContent() {
                   placeholder="Enter image URL"
                   required
                 />
+                {courseData.imageURL && (
+                  <div className="mt-4 rounded-lg overflow-hidden w-48 h-32 bg-gray-100 dark:bg-gray-700">
+                    <img
+                      src={courseData.imageURL}
+                      alt="Course preview"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                      onLoad={(e) => {
+                        (e.target as HTMLImageElement).style.display = "block";
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
@@ -253,14 +268,14 @@ function CreateCourseContent() {
                 </label>
                 <input
                   type="text"
-                  value={courseData.topics?.join(", ")}
+                  value={courseData.topics?.join(", ") || ""}
                   onChange={(e) =>
                     setCourseData({
                       ...courseData,
                       topics: e.target.value
                         .split(",")
                         .map((topic) => topic.trim())
-                        .filter(Boolean),
+                        .filter((topic) => topic.length > 0),
                     })
                   }
                   className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-[#7BD3EA] focus:ring-2 focus:ring-[#7BD3EA] transition-colors"
@@ -960,7 +975,7 @@ function RichTextEditor({
       </div>
       <EditorContent
         editor={editor}
-        className="prose prose-sm dark:prose-invert max-w-none p-4 min-h-[200px] bg-white dark:bg-gray-700 focus:outline-none [&_hr]:border-t-2 [&_hr]:border-gray-300 dark:[&_hr]:border-gray-600 [&_hr]:my-4 [&_img]:max-w-[400px] [&_img]:object-contain [&_img]:mx-auto [&_img]:rounded-lg"
+        className="prose prose-sm dark:prose-invert max-w-none p-4 min-h-[200px] bg-white dark:bg-gray-700 focus:outline-none [&_hr]:border-t-2 [&_hr]:border-gray-300 dark:[&_hr]:border-gray-600 [&_img]:max-w-[400px] [&_img]:object-contain [&_img]:mx-auto [&_img]:rounded-lg"
       />
       <LinkDialog
         isOpen={showLinkDialog}
