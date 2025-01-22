@@ -76,6 +76,27 @@ function ParentDashboardContent() {
     );
   }
 
+  if (children.length === 0) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-4">
+        <div className="text-center">
+          <h2 className="mb-2 text-2xl font-semibold text-gray-800">
+            No Children Registered
+          </h2>
+          <p className="text-gray-600">
+            You haven&apos;t registered any children yet.
+          </p>
+        </div>
+        <Link
+          href="/profile/create-child"
+          className="rounded-lg bg-primary px-6 py-2 text-white transition-colors hover:bg-primary/90"
+        >
+          Register a Child
+        </Link>
+      </div>
+    );
+  }
+
   const activityData = [
     { name: "Mon", courses: 4, challenges: 2 },
     { name: "Tue", courses: 3, challenges: 1 },
