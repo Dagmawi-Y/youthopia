@@ -11,7 +11,7 @@ import Highlight from "@tiptap/extension-highlight";
 import Typography from "@tiptap/extension-typography";
 import Link from "@tiptap/extension-link";
 import CodeBlock from "@tiptap/extension-code-block";
-import Image from "@tiptap/extension-image";
+import { Image as TiptapImage } from "@tiptap/extension-image";
 
 const isValidYoutubeUrl = (url: string) => {
   const youtubeRegex =
@@ -569,7 +569,11 @@ function RichTextEditor({
         openOnClick: false,
       }),
       CodeBlock,
-      Image,
+      TiptapImage.configure({
+        HTMLAttributes: {
+          class: "max-w-full h-auto",
+        },
+      }),
     ],
     content: content || "",
     editorProps: {
@@ -592,8 +596,33 @@ function RichTextEditor({
       if (file) {
         const reader = new FileReader();
         reader.onload = (e) => {
-          const result = e.target?.result as string;
-          editor?.chain().focus().setImage({ src: result }).run();
+          const img = new Image();
+          img.onload = () => {
+            // Set maximum width while maintaining aspect ratio
+            const maxWidth = 800;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > maxWidth) {
+              height = (maxWidth * height) / width;
+              width = maxWidth;
+            }
+
+            // Create canvas for resizing
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+
+            // Draw and resize image
+            const ctx = canvas.getContext("2d");
+            ctx?.drawImage(img, 0, 0, width, height);
+
+            // Get resized image as base64
+            const resizedImage = canvas.toDataURL(file.type);
+
+            editor?.chain().focus().setImage({ src: resizedImage }).run();
+          };
+          img.src = e.target?.result as string;
         };
         reader.readAsDataURL(file);
       }
@@ -931,7 +960,7 @@ function RichTextEditor({
       </div>
       <EditorContent
         editor={editor}
-        className="prose prose-sm dark:prose-invert max-w-none p-4 min-h-[200px] bg-white dark:bg-gray-700 focus:outline-none [&_hr]:border-t-2 [&_hr]:border-gray-300 dark:[&_hr]:border-gray-600 [&_hr]:my-4"
+        className="prose prose-sm dark:prose-invert max-w-none p-4 min-h-[200px] bg-white dark:bg-gray-700 focus:outline-none [&_hr]:border-t-2 [&_hr]:border-gray-300 dark:[&_hr]:border-gray-600 [&_hr]:my-4 [&_img]:max-w-[400px] [&_img]:object-contain [&_img]:mx-auto [&_img]:rounded-lg"
       />
       <LinkDialog
         isOpen={showLinkDialog}
