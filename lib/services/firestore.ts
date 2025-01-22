@@ -122,7 +122,7 @@ export const createChildAccount = async (
       uid: childUid,
       email,
       displayName: username,
-      username: username.toLowerCase(), // Store username in lowercase for consistency
+      username: username.toLowerCase(),
       accountType: "child",
       role: "user",
       parentId,
