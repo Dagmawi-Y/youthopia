@@ -1,3 +1,5 @@
+import { Timestamp } from "firebase/firestore";
+
 export interface UserProfile {
   uid: string;
   email: string;
@@ -99,18 +101,19 @@ export interface Challenge {
   imageURL?: string;
   difficulty: "beginner" | "intermediate" | "advanced";
   points: number;
-  deadline?: Date;
+  deadline?: Timestamp;
   participants: string[];
   winners: string[];
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
   submissions: Submission[];
 }
 
-export const getDaysLeft = (deadline?: Date): number => {
+export const getDaysLeft = (deadline?: Timestamp): number => {
   if (!deadline) return 0;
   const now = new Date();
-  const diff = deadline.getTime() - now.getTime();
+  const deadlineDate = deadline.toDate();
+  const diff = deadlineDate.getTime() - now.getTime();
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 };
 
