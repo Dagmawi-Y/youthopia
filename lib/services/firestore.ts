@@ -57,6 +57,7 @@ export const createUserProfile = async (
     bio: data.bio || "",
     photoURL: data.photoURL || null,
     accountType: data.accountType || "parent",
+    role: data.role || "user",
     childAccounts: data.childAccounts || [],
     notificationSettings: data.notificationSettings || {
       emailNotifications: true,
@@ -123,6 +124,7 @@ export const createChildAccount = async (
       displayName: username,
       username: username.toLowerCase(), // Store username in lowercase for consistency
       accountType: "child",
+      role: "user",
       parentId,
       points: 0,
       completedCourses: [],
