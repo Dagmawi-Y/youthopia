@@ -486,16 +486,68 @@ function RichTextEditor({
   });
 
   const addImage = () => {
-    const url = window.prompt("Enter image URL:");
-    if (url) {
-      editor?.chain().focus().setImage({ src: url }).run();
-    }
+    // Create a hidden file input
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = (event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          editor?.chain().focus().setImage({ src: result }).run();
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+    input.click();
   };
 
   const setLink = () => {
-    const url = window.prompt("Enter URL:");
-    if (url) {
+    const previousUrl = editor?.getAttributes("link").href;
+    const selection = editor?.state.selection;
+    const hasText = !selection?.empty;
+
+    if (hasText) {
+      const url = window.prompt("Enter URL:", previousUrl);
+      if (url === null) {
+        return; // User canceled
+      }
+
+      if (url === "") {
+        editor?.chain().focus().unsetLink().run();
+        return;
+      }
+
       editor?.chain().focus().setLink({ href: url }).run();
+    } else {
+      const url = window.prompt("Enter URL:");
+      if (url === null) {
+        return; // User canceled
+      }
+
+      if (url) {
+        const text = window.prompt("Enter link text:");
+        if (text === null) {
+          return; // User canceled
+        }
+
+        editor
+          ?.chain()
+          .focus()
+          .insertContent({
+            type: "text",
+            text: text,
+            marks: [
+              {
+                type: "link",
+                attrs: { href: url },
+              },
+            ],
+          })
+          .run();
+      }
     }
   };
 
