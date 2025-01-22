@@ -56,15 +56,36 @@ export const createUserProfile = async (
   await setDoc(userRef, profileData);
 };
 
+export const isUsernameAvailable = async (
+  username: string
+): Promise<boolean> => {
+  try {
+    const q = query(
+      collection(db, "users"),
+      where("username", "==", username.toLowerCase())
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.empty;
+  } catch (error) {
+    console.error("Error checking username availability:", error);
+    throw error;
+  }
+};
+
 export const createChildAccount = async (
   username: string,
   password: string,
   parentId: string
 ) => {
   try {
-    const email = `${username.toLowerCase()}_${Math.random()
-      .toString(36)
-      .substring(2)}@youthopia.internal`;
+    // Check username availability
+    const isAvailable = await isUsernameAvailable(username);
+    if (!isAvailable) {
+      throw new Error("Username is already taken");
+    }
+
+    // Create account with username as email prefix (no random string needed)
+    const email = `${username.toLowerCase()}@youthopia.internal`;
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       email,
@@ -76,7 +97,7 @@ export const createChildAccount = async (
       uid: childUid,
       email,
       displayName: username,
-      username,
+      username: username.toLowerCase(), // Store username in lowercase for consistency
       accountType: "child",
       parentId,
       points: 0,
