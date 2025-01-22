@@ -273,18 +273,21 @@ export const addComment = async (
   return commentId;
 };
 
-export const createCourse = async (
-  data: Omit<Course, "id" | "createdAt" | "updatedAt">
-) => {
-  const coursesRef = collection(db, "courses");
-  const courseRef = doc(coursesRef);
-  await setDoc(courseRef, {
-    ...data,
-    id: courseRef.id,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  });
-  return courseRef.id;
+export const createCourse = async (courseData: Course) => {
+  try {
+    const courseRef = doc(collection(db, "courses"));
+    const courseWithTimestamps = {
+      ...courseData,
+      id: courseRef.id,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
+    await setDoc(courseRef, courseWithTimestamps);
+    return courseRef.id;
+  } catch (error) {
+    console.error("Error creating course:", error);
+    throw error;
+  }
 };
 
 export const getCourse = async (courseId: string) => {
@@ -394,6 +397,127 @@ export const removeChildFromParent = async (
     });
   } catch (error) {
     console.error("Error removing child from parent:", error);
+    throw error;
+  }
+};
+
+export const getAllUsers = async () => {
+  try {
+    const querySnapshot = await getDocs(collection(db, "users"));
+    return querySnapshot.docs.map((doc) => ({
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate(),
+      updatedAt: doc.data().updatedAt?.toDate(),
+    })) as UserProfile[];
+  } catch (error) {
+    console.error("Error getting all users:", error);
+    throw error;
+  }
+};
+
+export const getAllCourses = async () => {
+  try {
+    const querySnapshot = await getDocs(collection(db, "courses"));
+    return querySnapshot.docs.map((doc) => ({
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate(),
+      updatedAt: doc.data().updatedAt?.toDate(),
+    })) as Course[];
+  } catch (error) {
+    console.error("Error getting all courses:", error);
+    throw error;
+  }
+};
+
+export const getAllChallenges = async () => {
+  try {
+    const querySnapshot = await getDocs(collection(db, "challenges"));
+    return querySnapshot.docs.map((doc) => ({
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate(),
+      updatedAt: doc.data().updatedAt?.toDate(),
+    })) as Challenge[];
+  } catch (error) {
+    console.error("Error getting all challenges:", error);
+    throw error;
+  }
+};
+
+export const getAllPosts = async () => {
+  try {
+    const querySnapshot = await getDocs(collection(db, "posts"));
+    return querySnapshot.docs.map((doc) => ({
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate(),
+      updatedAt: doc.data().updatedAt?.toDate(),
+      comments: doc.data().comments.map((comment: any) => ({
+        ...comment,
+        createdAt: comment.createdAt?.toDate(),
+        updatedAt: comment.updatedAt?.toDate(),
+      })),
+    })) as Post[];
+  } catch (error) {
+    console.error("Error getting all posts:", error);
+    throw error;
+  }
+};
+
+export const deleteCourse = async (courseId: string) => {
+  try {
+    const courseRef = doc(db, "courses", courseId);
+    await deleteDoc(courseRef);
+  } catch (error) {
+    console.error("Error deleting course:", error);
+    throw error;
+  }
+};
+
+export const deleteChallenge = async (challengeId: string) => {
+  try {
+    const challengeRef = doc(db, "challenges", challengeId);
+    await deleteDoc(challengeRef);
+  } catch (error) {
+    console.error("Error deleting challenge:", error);
+    throw error;
+  }
+};
+
+export const updateCourse = async (
+  courseId: string,
+  courseData: Partial<Course>
+) => {
+  try {
+    const courseRef = doc(db, "courses", courseId);
+    const updateData = { ...courseData, updatedAt: serverTimestamp() };
+    await updateDoc(courseRef, updateData);
+  } catch (error) {
+    console.error("Error updating course:", error);
+    throw error;
+  }
+};
+
+export const getAllBadges = async () => {
+  try {
+    const querySnapshot = await getDocs(collection(db, "badges"));
+    return querySnapshot.docs.map((doc) => ({
+      ...doc.data(),
+      id: doc.id,
+    })) as Badge[];
+  } catch (error) {
+    console.error("Error getting all badges:", error);
+    throw error;
+  }
+};
+
+export const removeBadge = async (userId: string, badgeId: string) => {
+  try {
+    const userRef = doc(db, "users", userId);
+    await updateDoc(userRef, {
+      badges: arrayRemove(badgeId),
+      updatedAt: serverTimestamp(),
+    });
+  } catch (error) {
+    console.error("Error removing badge:", error);
     throw error;
   }
 };

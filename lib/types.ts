@@ -11,6 +11,7 @@ export interface UserProfile {
   completedChallenges: string[];
   badges: string[];
   accountType: "parent" | "child";
+  role?: "admin" | "moderator" | "user";
   parentId?: string;
   childAccounts?: string[];
   username?: string;
