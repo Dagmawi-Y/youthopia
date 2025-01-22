@@ -11,9 +11,6 @@ import { Label } from "@/components/ui/label";
 import { ParentRoute } from "@/components/auth/parent-route";
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { storage } from "@/lib/firebase";
-import { updatePassword } from "firebase/auth";
 
 export default function EditChildPage({
   params,
@@ -99,12 +96,24 @@ function EditChildContent({ params }: { params: { id: string } }) {
   const uploadPhoto = async (): Promise<string | null> => {
     if (!photoFile || !childProfile) return null;
 
-    const fileRef = ref(
-      storage,
-      `profile-photos/${childProfile.uid}/${photoFile.name}`
-    );
-    await uploadBytes(fileRef, photoFile);
-    return getDownloadURL(fileRef);
+    const formData = new FormData();
+    formData.append("file", photoFile);
+    const path = `/public/uploads/profile-images/${
+      childProfile.uid
+    }-${Date.now()}-${photoFile.name}`;
+    formData.append("path", path);
+
+    const response = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to upload image");
+    }
+
+    const data = await response.json();
+    return data.path; // The API returns the relative path
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
