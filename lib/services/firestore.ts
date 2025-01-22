@@ -14,6 +14,7 @@ import {
   arrayRemove,
   Timestamp,
   serverTimestamp,
+  onSnapshot,
 } from "firebase/firestore";
 import { auth, db } from "../firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
@@ -27,6 +28,20 @@ import type {
 } from "../types";
 
 export { arrayUnion, arrayRemove };
+
+export const onUserProfileChange = (
+  uid: string,
+  callback: (profile: UserProfile | null) => void
+) => {
+  const userRef = doc(db, "users", uid);
+  return onSnapshot(userRef, (doc) => {
+    if (doc.exists()) {
+      callback(doc.data() as UserProfile);
+    } else {
+      callback(null);
+    }
+  });
+};
 
 export const createUserProfile = async (
   uid: string,

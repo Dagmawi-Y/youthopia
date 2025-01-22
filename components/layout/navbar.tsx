@@ -24,25 +24,27 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/context/auth-context";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import * as FirestoreService from "@/lib/services/firestore";
+import { UserProfile } from "@/lib/types";
 
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (user) {
-        try {
-          const profile = await FirestoreService.getUserProfile(user.uid);
-          setUserProfile(profile);
-        } catch (error) {
-          console.error("Error fetching user profile:", error);
-        }
+    if (!user) return;
+
+    // Set up real-time listener for user profile
+    const unsubscribe = FirestoreService.onUserProfileChange(
+      user.uid,
+      (profile) => {
+        setUserProfile(profile);
       }
-    };
-    fetchUserProfile();
+    );
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, [user]);
 
   const handleSignOut = async () => {
@@ -151,9 +153,16 @@ export function Navbar() {
                   <DropdownMenuTrigger asChild>
                     <Button className="relative h-10 w-10 rounded-full">
                       <Avatar>
-                        <AvatarImage src={user.photoURL || undefined} />
+                        <AvatarImage
+                          src={
+                            userProfile?.photoURL || user.photoURL || undefined
+                          }
+                        />
                         <AvatarFallback>
-                          {user.displayName?.slice(0, 2).toUpperCase() ||
+                          {userProfile?.displayName
+                            ?.slice(0, 2)
+                            .toUpperCase() ||
+                            user.displayName?.slice(0, 2).toUpperCase() ||
                             user.email?.slice(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
