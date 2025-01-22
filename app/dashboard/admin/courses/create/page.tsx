@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import * as FirestoreService from "@/lib/services/firestore";
 import { Course, CourseModule } from "@/lib/types";
@@ -12,6 +12,18 @@ import Typography from "@tiptap/extension-typography";
 import Link from "@tiptap/extension-link";
 import CodeBlock from "@tiptap/extension-code-block";
 import { Image as TiptapImage } from "@tiptap/extension-image";
+
+const COURSE_TOPICS = [
+  "Art & Craft",
+  "Life Skills",
+  "Performing Arts",
+  "Community",
+  "STEM",
+  "Outdoors",
+  "Games & Coding",
+  "Media",
+  "Health & Fitness",
+] as const;
 
 const isValidYoutubeUrl = (url: string) => {
   const youtubeRegex =
@@ -53,6 +65,25 @@ function CreateCourseContent() {
     videoURL: "",
     order: 0,
   });
+
+  const [isTopicsOpen, setIsTopicsOpen] = useState(false);
+  const topicsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        topicsRef.current &&
+        !topicsRef.current.contains(event.target as Node)
+      ) {
+        setIsTopicsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -266,22 +297,69 @@ function CreateCourseContent() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Course Topics
                 </label>
-                <input
-                  type="text"
-                  value={courseData.topics?.join(", ") || ""}
-                  onChange={(e) =>
-                    setCourseData({
-                      ...courseData,
-                      topics: e.target.value
-                        .split(",")
-                        .map((topic) => topic.trim())
-                        .filter((topic) => topic.length > 0),
-                    })
-                  }
-                  className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-[#7BD3EA] focus:ring-2 focus:ring-[#7BD3EA] transition-colors"
-                  placeholder="Enter topics (comma-separated)"
-                  required
-                />
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsTopicsOpen(!isTopicsOpen)}
+                    className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-[#7BD3EA] focus:ring-2 focus:ring-[#7BD3EA] transition-colors text-left"
+                  >
+                    {courseData.topics?.length
+                      ? courseData.topics.join(", ")
+                      : "Select topics"}
+                    <svg
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 transition-transform ${
+                        isTopicsOpen ? "rotate-180" : ""
+                      }`}
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                  {isTopicsOpen && (
+                    <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg">
+                      <div className="p-2 space-y-1 max-h-60 overflow-auto">
+                        {COURSE_TOPICS.map((topic) => (
+                          <label
+                            key={topic}
+                            className="flex items-center px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={
+                                courseData.topics?.includes(topic) || false
+                              }
+                              onChange={(e) => {
+                                const newTopics = e.target.checked
+                                  ? [...(courseData.topics || []), topic]
+                                  : courseData.topics?.filter(
+                                      (t) => t !== topic
+                                    ) || [];
+                                setCourseData({
+                                  ...courseData,
+                                  topics: newTopics,
+                                });
+                              }}
+                              className="w-4 h-4 rounded border-gray-300 text-[#7BD3EA] focus:ring-[#7BD3EA]"
+                            />
+                            <span className="ml-3 text-gray-900 dark:text-gray-100">
+                              {topic}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                {!courseData.topics?.length && (
+                  <div className="mt-2 text-sm text-amber-600 dark:text-amber-400">
+                    Please select at least one topic
+                  </div>
+                )}
               </div>
             </div>
           </div>
