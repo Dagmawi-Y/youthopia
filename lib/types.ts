@@ -14,6 +14,15 @@ export interface UserProfile {
   parentId?: string;
   childAccounts?: string[];
   username?: string;
+  notificationSettings?: {
+    emailNotifications: boolean;
+    challengeUpdates: boolean;
+    friendActivity: boolean;
+  };
+  privacySettings?: {
+    profileVisibility: "public" | "friends";
+    activitySharing: "everyone" | "friends";
+  };
 }
 
 export interface Post {

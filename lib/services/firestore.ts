@@ -43,6 +43,15 @@ export const createUserProfile = async (
     photoURL: data.photoURL || null,
     accountType: data.accountType || "parent",
     childAccounts: data.childAccounts || [],
+    notificationSettings: data.notificationSettings || {
+      emailNotifications: true,
+      challengeUpdates: true,
+      friendActivity: true,
+    },
+    privacySettings: data.privacySettings || {
+      profileVisibility: "public",
+      activitySharing: "everyone",
+    },
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   };

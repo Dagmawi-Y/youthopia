@@ -1,19 +1,169 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
+import { useAuth } from "@/lib/context/auth-context";
+import * as FirestoreService from "@/lib/services/firestore";
+import { toast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+
+interface NotificationSettings {
+  emailNotifications: boolean;
+  challengeUpdates: boolean;
+  friendActivity: boolean;
+}
+
+interface PrivacySettings {
+  profileVisibility: "public" | "friends";
+  activitySharing: "everyone" | "friends";
+}
 
 export default function SettingsPage() {
-  const [notifications, setNotifications] = useState({
-    email: true,
-    challenges: true,
-    friends: true,
+  const { user } = useAuth();
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [notificationSettings, setNotificationSettings] =
+    useState<NotificationSettings>({
+      emailNotifications: true,
+      challengeUpdates: true,
+      friendActivity: true,
+    });
+  const [privacySettings, setPrivacySettings] = useState<PrivacySettings>({
+    profileVisibility: "public",
+    activitySharing: "everyone",
   });
+
+  useEffect(() => {
+    if (!user) {
+      router.push("/auth/signin");
+      return;
+    }
+
+    const fetchSettings = async () => {
+      try {
+        const profile = await FirestoreService.getUserProfile(user.uid);
+        if (profile) {
+          setUserProfile(profile);
+          // Load saved notification settings if they exist
+          if (profile.notificationSettings) {
+            setNotificationSettings(profile.notificationSettings);
+          }
+          // Load saved privacy settings if they exist
+          if (profile.privacySettings) {
+            setPrivacySettings(profile.privacySettings);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching settings:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load settings",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSettings();
+  }, [user, router]);
+
+  const handleAccountUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !userProfile) return;
+
+    setSaving(true);
+    try {
+      const formData = new FormData(e.target as HTMLFormElement);
+      const updates = {
+        displayName: formData.get("displayName") as string,
+        username: formData.get("username") as string,
+      };
+
+      await FirestoreService.updateUserProfile(user.uid, updates);
+      toast({
+        title: "Success",
+        description: "Account settings updated",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update account settings",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleNotificationUpdate = async (
+    settings: Partial<NotificationSettings>
+  ) => {
+    if (!user || !userProfile) return;
+
+    try {
+      const newSettings = { ...notificationSettings, ...settings };
+      setNotificationSettings(newSettings);
+      await FirestoreService.updateUserProfile(user.uid, {
+        notificationSettings: newSettings,
+      });
+      toast({
+        title: "Success",
+        description: "Notification settings updated",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update notification settings",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handlePrivacyUpdate = async (settings: Partial<PrivacySettings>) => {
+    if (!user || !userProfile) return;
+
+    try {
+      const newSettings = { ...privacySettings, ...settings };
+      setPrivacySettings(newSettings);
+      await FirestoreService.updateUserProfile(user.uid, {
+        privacySettings: newSettings,
+      });
+      toast({
+        title: "Success",
+        description: "Privacy settings updated",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update privacy settings",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!userProfile) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center text-red-600">Failed to load profile</div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -29,32 +179,54 @@ export default function SettingsPage() {
         <TabsContent value="account">
           <Card className="p-6">
             <h2 className="text-xl font-semibold mb-6">Account Settings</h2>
-            <div className="space-y-6">
+            <form onSubmit={handleAccountUpdate} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" defaultValue="sarah@example.com" />
+                <Input
+                  id="email"
+                  type="email"
+                  value={userProfile.email}
+                  disabled
+                  className="bg-gray-50"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="displayName">Display Name</Label>
+                <Input
+                  id="displayName"
+                  name="displayName"
+                  defaultValue={userProfile.displayName}
+                  required
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="username">Username</Label>
-                <Input id="username" defaultValue="sarahcreates" />
+                <Input
+                  id="username"
+                  name="username"
+                  defaultValue={userProfile.username}
+                  required
+                />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">New Password</Label>
-                <Input id="password" type="password" />
-              </div>
-
-              <Button className="bg-[#7BD3EA] hover:bg-[#A1EEBD] text-black">
-                Save Changes
+              <Button
+                type="submit"
+                disabled={saving}
+                className="bg-[#7BD3EA] hover:bg-[#A1EEBD] text-black"
+              >
+                {saving ? "Saving..." : "Save Changes"}
               </Button>
-            </div>
+            </form>
           </Card>
         </TabsContent>
 
         <TabsContent value="notifications">
           <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-6">Notification Preferences</h2>
+            <h2 className="text-xl font-semibold mb-6">
+              Notification Preferences
+            </h2>
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
@@ -64,9 +236,9 @@ export default function SettingsPage() {
                   </p>
                 </div>
                 <Switch
-                  checked={notifications.email}
+                  checked={notificationSettings.emailNotifications}
                   onCheckedChange={(checked) =>
-                    setNotifications({ ...notifications, email: checked })
+                    handleNotificationUpdate({ emailNotifications: checked })
                   }
                 />
               </div>
@@ -79,9 +251,9 @@ export default function SettingsPage() {
                   </p>
                 </div>
                 <Switch
-                  checked={notifications.challenges}
+                  checked={notificationSettings.challengeUpdates}
                   onCheckedChange={(checked) =>
-                    setNotifications({ ...notifications, challenges: checked })
+                    handleNotificationUpdate({ challengeUpdates: checked })
                   }
                 />
               </div>
@@ -94,9 +266,9 @@ export default function SettingsPage() {
                   </p>
                 </div>
                 <Switch
-                  checked={notifications.friends}
+                  checked={notificationSettings.friendActivity}
                   onCheckedChange={(checked) =>
-                    setNotifications({ ...notifications, friends: checked })
+                    handleNotificationUpdate({ friendActivity: checked })
                   }
                 />
               </div>
@@ -111,10 +283,30 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label>Profile Visibility</Label>
                 <div className="grid grid-cols-2 gap-4">
-                  <Button variant="outline" className="justify-start">
+                  <Button
+                    variant={
+                      privacySettings.profileVisibility === "public"
+                        ? "default"
+                        : "outline"
+                    }
+                    className="justify-start"
+                    onClick={() =>
+                      handlePrivacyUpdate({ profileVisibility: "public" })
+                    }
+                  >
                     Public
                   </Button>
-                  <Button variant="outline" className="justify-start">
+                  <Button
+                    variant={
+                      privacySettings.profileVisibility === "friends"
+                        ? "default"
+                        : "outline"
+                    }
+                    className="justify-start"
+                    onClick={() =>
+                      handlePrivacyUpdate({ profileVisibility: "friends" })
+                    }
+                  >
                     Friends Only
                   </Button>
                 </div>
@@ -123,18 +315,34 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label>Activity Sharing</Label>
                 <div className="grid grid-cols-2 gap-4">
-                  <Button variant="outline" className="justify-start">
+                  <Button
+                    variant={
+                      privacySettings.activitySharing === "everyone"
+                        ? "default"
+                        : "outline"
+                    }
+                    className="justify-start"
+                    onClick={() =>
+                      handlePrivacyUpdate({ activitySharing: "everyone" })
+                    }
+                  >
                     Everyone
                   </Button>
-                  <Button variant="outline" className="justify-start">
+                  <Button
+                    variant={
+                      privacySettings.activitySharing === "friends"
+                        ? "default"
+                        : "outline"
+                    }
+                    className="justify-start"
+                    onClick={() =>
+                      handlePrivacyUpdate({ activitySharing: "friends" })
+                    }
+                  >
                     Friends
                   </Button>
                 </div>
               </div>
-
-              <Button className="bg-[#7BD3EA] hover:bg-[#A1EEBD] text-black">
-                Save Privacy Settings
-              </Button>
             </div>
           </Card>
         </TabsContent>
