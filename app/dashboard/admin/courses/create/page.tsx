@@ -5,6 +5,13 @@ import { useRouter } from "next/navigation";
 import * as FirestoreService from "@/lib/services/firestore";
 import { Course, CourseModule } from "@/lib/types";
 import { AdminRoute } from "../../../../../components/auth/admin-route";
+import { useEditor, EditorContent, Editor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Highlight from "@tiptap/extension-highlight";
+import Typography from "@tiptap/extension-typography";
+import Link from "@tiptap/extension-link";
+import CodeBlock from "@tiptap/extension-code-block";
+import Image from "@tiptap/extension-image";
 
 export default function CreateCourse() {
   return (
@@ -282,9 +289,11 @@ function CreateCourseContent() {
                         {module.title}
                       </h3>
                     </div>
-                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                      {module.content}
-                    </p>
+                    <div className="mt-2 prose prose-sm dark:prose-invert max-w-none">
+                      <div
+                        dangerouslySetInnerHTML={{ __html: module.content }}
+                      />
+                    </div>
                   </div>
                   <button
                     type="button"
@@ -308,7 +317,10 @@ function CreateCourseContent() {
                 {module.videoURL && (
                   <div className="mt-4 aspect-video rounded-lg overflow-hidden bg-black">
                     <iframe
-                      src={module.videoURL.replace("watch?v=", "embed/")}
+                      src={(module.videoURL as string).replace(
+                        "watch?v=",
+                        "embed/"
+                      )}
                       className="w-full h-full"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
@@ -347,18 +359,19 @@ function CreateCourseContent() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Module Content
                 </label>
-                <textarea
-                  value={currentModule.content}
-                  onChange={(e) =>
+                <RichTextEditor
+                  content={currentModule.content}
+                  onChange={(html) =>
                     setCurrentModule({
                       ...currentModule,
-                      content: e.target.value,
+                      content: html,
                     })
                   }
-                  rows={4}
-                  className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-[#7BD3EA] focus:ring-2 focus:ring-[#7BD3EA] transition-colors"
-                  placeholder="Enter module content and instructions"
                 />
+                <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                  Use the toolbar above to format your content. You can also use
+                  Markdown syntax.
+                </div>
               </div>
 
               <div>
@@ -380,7 +393,10 @@ function CreateCourseContent() {
                 {currentModule.videoURL && (
                   <div className="mt-4 aspect-video rounded-lg overflow-hidden bg-black">
                     <iframe
-                      src={currentModule.videoURL.replace("watch?v=", "embed/")}
+                      src={(currentModule.videoURL as string).replace(
+                        "watch?v=",
+                        "embed/"
+                      )}
                       className="w-full h-full"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
@@ -436,6 +452,363 @@ function CreateCourseContent() {
           </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+function RichTextEditor({
+  content,
+  onChange,
+}: {
+  content: string | undefined;
+  onChange: (html: string) => void;
+}) {
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Highlight,
+      Typography,
+      Link.configure({
+        openOnClick: false,
+      }),
+      CodeBlock,
+      Image,
+    ],
+    content: content || "",
+    editorProps: {
+      attributes: {
+        class: "prose prose-sm dark:prose-invert focus:outline-none max-w-none",
+      },
+    },
+    onUpdate: ({ editor }: { editor: Editor }) => {
+      onChange(editor.getHTML());
+    },
+  });
+
+  const addImage = () => {
+    const url = window.prompt("Enter image URL:");
+    if (url) {
+      editor?.chain().focus().setImage({ src: url }).run();
+    }
+  };
+
+  const setLink = () => {
+    const url = window.prompt("Enter URL:");
+    if (url) {
+      editor?.chain().focus().setLink({ href: url }).run();
+    }
+  };
+
+  if (!editor) {
+    return null;
+  }
+
+  return (
+    <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+      <div className="bg-white dark:bg-gray-700 border-b border-gray-300 dark:border-gray-600 p-2 flex flex-wrap gap-1">
+        {/* History Controls */}
+        <div className="flex gap-1 mr-2 border-r border-gray-200 dark:border-gray-600 pr-2">
+          <button
+            onClick={() => editor.chain().focus().undo().run()}
+            disabled={!editor.can().undo()}
+            className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50"
+            title="Undo"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 10h10a4 4 0 0 1 4 4v0a4 4 0 0 1-4 4H3m0-4l4-4m-4 4l4 4"
+              />
+            </svg>
+          </button>
+          <button
+            onClick={() => editor.chain().focus().redo().run()}
+            disabled={!editor.can().redo()}
+            className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50"
+            title="Redo"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 10h-10a4 4 0 0 0-4 4v0a4 4 0 0 0 4 4h10m0-4l-4-4m4 4l-4 4"
+              />
+            </svg>
+          </button>
+        </div>
+
+        {/* Text Formatting */}
+        <div className="flex gap-1 mr-2 border-r border-gray-200 dark:border-gray-600 pr-2">
+          <button
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 ${
+              editor.isActive("bold") ? "bg-gray-200 dark:bg-gray-600" : ""
+            }`}
+            title="Bold"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 12h8a4 4 0 0 0 0-8H6v8zm0 0h9a4 4 0 0 1 0 8H6v-8z"
+              />
+            </svg>
+          </button>
+          <button
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 ${
+              editor.isActive("italic") ? "bg-gray-200 dark:bg-gray-600" : ""
+            }`}
+            title="Italic"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <line x1="19" y1="4" x2="10" y2="4" strokeWidth={2} />
+              <line x1="14" y1="20" x2="5" y2="20" strokeWidth={2} />
+              <line x1="15" y1="4" x2="9" y2="20" strokeWidth={2} />
+            </svg>
+          </button>
+        </div>
+
+        {/* Headings and Lists */}
+        <div className="flex gap-1 mr-2 border-r border-gray-200 dark:border-gray-600 pr-2">
+          <button
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 2 }).run()
+            }
+            className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 ${
+              editor.isActive("heading", { level: 2 })
+                ? "bg-gray-200 dark:bg-gray-600"
+                : ""
+            }`}
+            title="Heading"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h7"
+              />
+            </svg>
+          </button>
+          <button
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 ${
+              editor.isActive("bulletList")
+                ? "bg-gray-200 dark:bg-gray-600"
+                : ""
+            }`}
+            title="Bullet List"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"
+              />
+            </svg>
+          </button>
+          <button
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 ${
+              editor.isActive("orderedList")
+                ? "bg-gray-200 dark:bg-gray-600"
+                : ""
+            }`}
+            title="Numbered List"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16M3 10V4m0 12v-2m0 8v-2"
+              />
+            </svg>
+          </button>
+        </div>
+
+        {/* Block Elements */}
+        <div className="flex gap-1 mr-2 border-r border-gray-200 dark:border-gray-600 pr-2">
+          <button
+            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+            className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 ${
+              editor.isActive("blockquote")
+                ? "bg-gray-200 dark:bg-gray-600"
+                : ""
+            }`}
+            title="Block Quote"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+              />
+            </svg>
+          </button>
+          <button
+            onClick={() => editor.chain().focus().setHorizontalRule().run()}
+            className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600"
+            title="Horizontal Rule"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 12h14"
+              />
+            </svg>
+          </button>
+        </div>
+
+        {/* Code */}
+        <div className="flex gap-1 mr-2 border-r border-gray-200 dark:border-gray-600 pr-2">
+          <button
+            onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+            className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 ${
+              editor.isActive("codeBlock") ? "bg-gray-200 dark:bg-gray-600" : ""
+            }`}
+            title="Code Block"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+          </button>
+        </div>
+
+        {/* Links and Media */}
+        <div className="flex gap-1">
+          <button
+            onClick={setLink}
+            className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 ${
+              editor.isActive("link") ? "bg-gray-200 dark:bg-gray-600" : ""
+            }`}
+            title="Add Link"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+              />
+            </svg>
+          </button>
+          <button
+            onClick={addImage}
+            className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600"
+            title="Add Image"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <rect
+                x="3"
+                y="3"
+                width="18"
+                height="18"
+                rx="2"
+                ry="2"
+                strokeWidth={2}
+              />
+              <circle cx="8.5" cy="8.5" r="1.5" strokeWidth={2} />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 15l-5-5L5 21"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <EditorContent
+        editor={editor}
+        className="prose prose-sm dark:prose-invert max-w-none p-4 min-h-[200px] bg-white dark:bg-gray-700 focus:outline-none"
+      />
     </div>
   );
 }
