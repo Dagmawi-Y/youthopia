@@ -31,6 +31,57 @@ const isValidYoutubeUrl = (url: string) => {
   return youtubeRegex.test(url);
 };
 
+const validateCourseData = (data: Partial<Course>) => {
+  const errors: string[] = [];
+
+  // Title validation
+  if (!data.title?.trim()) {
+    errors.push("Course title is required");
+  } else if (data.title.length < 5) {
+    errors.push("Course title must be at least 5 characters long");
+  }
+
+  // Description validation
+  if (!data.description?.trim()) {
+    errors.push("Course description is required");
+  } else if (data.description.length < 20) {
+    errors.push("Course description must be at least 20 characters long");
+  }
+
+  // Image URL validation
+  if (!data.imageURL?.trim()) {
+    errors.push("Course image URL is required");
+  } else if (!data.imageURL.match(/^https?:\/\/.+/)) {
+    errors.push(
+      "Please enter a valid image URL starting with http:// or https://"
+    );
+  }
+
+  // Duration validation
+  if (!data.duration || data.duration <= 0) {
+    errors.push("Course duration must be greater than 0 hours");
+  }
+
+  // Points validation
+  if (!data.points || data.points <= 0) {
+    errors.push("Course points must be greater than 0");
+  }
+
+  // Instructor validation
+  if (!data.instructor?.trim()) {
+    errors.push("Instructor name is required");
+  } else if (data.instructor.length < 3) {
+    errors.push("Instructor name must be at least 3 characters long");
+  }
+
+  // Topics validation
+  if (!data.topics?.length) {
+    errors.push("Please select at least one course topic");
+  }
+
+  return errors;
+};
+
 export default function CreateCourse() {
   return (
     <AdminRoute>
@@ -87,8 +138,16 @@ function CreateCourseContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
+
+    // Validate course data
+    const validationErrors = validateCourseData(courseData);
+    if (validationErrors.length > 0) {
+      setError(validationErrors.join("\n"));
+      return;
+    }
+
+    setLoading(true);
 
     try {
       await FirestoreService.createCourse(courseData as Course);
@@ -537,8 +596,12 @@ function CreateCourseContent() {
         </div>
 
         {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-lg text-sm mt-4">
-            Error: {error}
+          <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg text-sm mt-4">
+            {error.split("\n").map((err, index) => (
+              <div key={index} className="text-red-600 dark:text-red-400">
+                • {err}
+              </div>
+            ))}
           </div>
         )}
 
