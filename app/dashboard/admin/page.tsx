@@ -324,6 +324,17 @@ function AdminDashboardContent() {
             </div>
           </div>
         </div>
+        <div className="flex mt-5">
+          <Link
+            href="/dashboard/admin/topics"
+            className="p-6 bg-card rounded-lg shadow-sm hover:shadow-md transition-shadow"
+          >
+            <h3 className="text-lg font-semibold mb-2">Course Topics</h3>
+            <p className="text-muted-foreground">
+              Manage course topics and categories
+            </p>
+          </Link>
+        </div>
       </div>
     </div>
   );

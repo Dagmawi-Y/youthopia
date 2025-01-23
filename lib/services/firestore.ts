@@ -555,3 +555,40 @@ export const updateChallenge = async (
     updatedAt: serverTimestamp(),
   });
 };
+
+// Course Topics Management
+export const createTopic = async (name: string, description?: string) => {
+  const topicsRef = collection(db, "courseTopics");
+  const topicDoc = doc(topicsRef);
+  await setDoc(topicDoc, {
+    id: topicDoc.id,
+    name,
+    description: description || "",
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+  return topicDoc.id;
+};
+
+export const getAllTopics = async () => {
+  const topicsRef = collection(db, "courseTopics");
+  const q = query(topicsRef, orderBy("name"));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+};
+
+export const updateTopic = async (
+  topicId: string,
+  data: { name?: string; description?: string }
+) => {
+  const topicRef = doc(db, "courseTopics", topicId);
+  await updateDoc(topicRef, {
+    ...data,
+    updatedAt: serverTimestamp(),
+  });
+};
+
+export const deleteTopic = async (topicId: string) => {
+  const topicRef = doc(db, "courseTopics", topicId);
+  await deleteDoc(topicRef);
+};
