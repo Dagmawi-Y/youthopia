@@ -53,7 +53,6 @@ export function Navbar() {
       console.error("Error signing out:", error);
     }
   };
-
   const filteredNavItems = NAVIGATION_ITEMS.filter((item) => {
     if (userProfile?.accountType === "parent") {
       return !["Activity", "Library"].includes(item.title);
@@ -63,10 +62,11 @@ export function Navbar() {
     if (item.title === "Dashboard") {
       return {
         ...item,
-        href:
-          userProfile?.accountType === "parent"
-            ? "/dashboard/parent"
-            : "/dashboard/child",
+        href: `/dashboard/${
+          userProfile?.role === "admin"
+            ? "admin"
+            : userProfile?.accountType || ""
+        }`,
       };
     }
     return item;

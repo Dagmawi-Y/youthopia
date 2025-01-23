@@ -217,7 +217,7 @@ export default function ChildDashboard() {
                 </h3>
                 <div className="space-y-4">
                   <Link
-                    href="/courses"
+                    href="/library"
                     className="block p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                   >
                     <h4 className="font-medium text-gray-900 dark:text-white">
@@ -297,7 +297,7 @@ export default function ChildDashboard() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/courses"
+                href="/library"
                 className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary/90"
               >
                 Browse Courses
