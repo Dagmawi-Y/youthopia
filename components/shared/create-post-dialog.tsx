@@ -13,8 +13,7 @@ import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
 import { useAuth } from "@/lib/context/auth-context";
 import { createPost } from "@/lib/services/firestore";
-import { storage } from "@/lib/firebase";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { uploadFile } from "@/lib/appwrite";
 
 export function CreatePostDialog() {
   const [isOpen, setIsOpen] = useState(false);
@@ -68,12 +67,7 @@ export function CreatePostDialog() {
     try {
       let mediaURL = "";
       if (mediaFile) {
-        const storageRef = ref(
-          storage,
-          `posts/${user.uid}/${Date.now()}-${mediaFile.name}`
-        );
-        await uploadBytes(storageRef, mediaFile);
-        mediaURL = await getDownloadURL(storageRef);
+        mediaURL = await uploadFile(mediaFile);
       }
 
       await createPost({
