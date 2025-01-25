@@ -71,11 +71,13 @@ const processImage = (file: File): Promise<File> => {
 interface CreatePostDialogProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  fileInputRef?: React.RefObject<HTMLInputElement>;
 }
 
 export function CreatePostDialog({
   open,
   onOpenChange,
+  fileInputRef: externalFileInputRef,
 }: CreatePostDialogProps) {
   const [content, setContent] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -84,8 +86,10 @@ export function CreatePostDialog({
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
   const [privacy, setPrivacy] = useState("everyone");
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const internalFileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
+
+  const fileInputRef = externalFileInputRef || internalFileInputRef;
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { ContentCard } from "@/components/shared/content-card";
 import { Button } from "@/components/ui/button";
 import { ProtectedRoute } from "@/components/auth/protected-route";
@@ -10,6 +10,7 @@ import { getAllPosts } from "@/lib/services/firestore";
 import type { Post } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/context/auth-context";
+import { ImageIcon, Video } from "lucide-react";
 
 const FEED_TABS = [
   { id: "all", label: "All" },
@@ -22,6 +23,7 @@ function ActivityContent() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const loadPosts = async () => {
@@ -60,13 +62,24 @@ function ActivityContent() {
               What's on your mind?
             </button>
           </div>
-          <div className="flex items-center mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
             <button
-              onClick={() => setIsCreatePostOpen(true)}
-              className="flex items-center gap-2 px-4 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-300"
+              onClick={() => {
+                setIsCreatePostOpen(true);
+                setTimeout(() => fileInputRef.current?.click(), 100);
+              }}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-300"
             >
-              <img src="/media.svg" alt="Media" className="w-5 h-5" />
-              <span className="text-sm font-medium">Photo/Video</span>
+              <ImageIcon className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => {
+                setIsCreatePostOpen(true);
+                setTimeout(() => fileInputRef.current?.click(), 100);
+              }}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-300"
+            >
+              <Video className="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -75,6 +88,7 @@ function ActivityContent() {
       <CreatePostDialog
         open={isCreatePostOpen}
         onOpenChange={setIsCreatePostOpen}
+        fileInputRef={fileInputRef}
       />
 
       {/* Feed Tabs */}
