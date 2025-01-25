@@ -69,7 +69,11 @@ export const usePosts = (limitCount = 10) => {
     }
   };
 
-  const createPost = async (content: string, imageURL?: string) => {
+  const createPost = async (
+    content: string,
+    mediaUrl?: string,
+    mediaType: "image" | "video" = "image"
+  ) => {
     if (!user) return;
 
     try {
@@ -78,7 +82,8 @@ export const usePosts = (limitCount = 10) => {
         authorName: user.displayName || "Anonymous",
         authorPhotoURL: user.photoURL || undefined,
         content,
-        imageURL,
+        mediaURL: mediaUrl,
+        mediaType,
         title: "",
         tags: [],
       });

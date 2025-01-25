@@ -21,6 +21,7 @@ export function CreatePostDialog() {
   const [isLoading, setIsLoading] = useState(false);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [mediaType, setMediaType] = useState<"image" | "video">("image");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
 
@@ -50,6 +51,7 @@ export function CreatePostDialog() {
     }
 
     setMediaFile(file);
+    setMediaType(isVideo ? "video" : "image");
     const objectUrl = URL.createObjectURL(file);
     setMediaPreview(objectUrl);
   };
@@ -74,7 +76,8 @@ export function CreatePostDialog() {
         authorName: user.displayName || "",
         authorPhotoURL: user.photoURL || "",
         content: content.trim(),
-        imageURL: mediaURL,
+        mediaURL,
+        mediaType,
         title: "",
         tags: [],
       });
@@ -82,6 +85,7 @@ export function CreatePostDialog() {
       setContent("");
       setMediaPreview(null);
       setMediaFile(null);
+      setMediaType("image");
       setIsOpen(false);
     } catch (error) {
       console.error("Error creating post:", error);
@@ -125,65 +129,64 @@ export function CreatePostDialog() {
             )}
           </div>
 
-          <div className="space-y-2">
-            {mediaPreview && (
-              <div className="relative">
-                {mediaFile?.type.startsWith("video/") ? (
-                  <video
-                    src={mediaPreview}
-                    className="w-full rounded-lg"
-                    controls
-                  />
-                ) : (
-                  <img
-                    src={mediaPreview}
-                    alt="Preview"
-                    className="w-full rounded-lg"
-                  />
-                )}
-                <button
-                  onClick={() => {
-                    setMediaPreview(null);
-                    setMediaFile(null);
-                  }}
-                  className="absolute -right-2 -top-2 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            )}
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              accept="image/*,video/*"
-              className="hidden"
-            />
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full"
-            >
-              Upload Photo or Video
-            </Button>
-          </div>
-
+          {mediaPreview && (
+            <div className="relative">
+              {mediaType === "video" ? (
+                <video
+                  src={mediaPreview}
+                  className="w-full rounded-lg"
+                  controls
+                />
+              ) : (
+                <img
+                  src={mediaPreview}
+                  alt="Preview"
+                  className="w-full rounded-lg"
+                />
+              )}
+              <button
+                onClick={() => {
+                  setMediaPreview(null);
+                  setMediaFile(null);
+                  setMediaType("image");
+                }}
+                className="absolute -right-2 -top-2 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept="image/*,video/*"
+            className="hidden"
+          />
           <Button
-            onClick={handleSubmit}
-            disabled={!content.trim() || isLoading}
-            className="w-full bg-[#7BD3EA] hover:bg-[#A1EEBD] text-black"
+            type="button"
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+            className="w-full"
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Posting...
-              </>
-            ) : (
-              "Post"
-            )}
+            Upload Photo or Video
           </Button>
         </div>
+
+        <Button
+          onClick={handleSubmit}
+          disabled={!content.trim() || isLoading}
+          className="w-full bg-[#7BD3EA] hover:bg-[#A1EEBD] text-black"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Posting...
+            </>
+          ) : (
+            "Post"
+          )}
+        </Button>
       </DialogContent>
     </Dialog>
   );

@@ -9,14 +9,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { MediaViewer } from "./media-viewer";
 import { ShareDialog } from "./share-dialog";
+import { CommentBox } from "./comment-box";
 import { useAuth } from "@/lib/context/auth-context";
-import { likePost, unlikePost } from "@/lib/services/firestore";
+import { likePost } from "@/lib/services/firestore";
 
 interface ContentCardProps {
   id: string | number;
   username: string;
   userAvatar?: string;
-  imageUrl: string;
+  mediaUrl?: string;
+  mediaType?: "image" | "video";
   content?: string;
   likes: string[];
   commentCount?: number;
@@ -28,7 +30,8 @@ export function ContentCard({
   id,
   username,
   userAvatar,
-  imageUrl,
+  mediaUrl,
+  mediaType = "image",
   content,
   likes = [],
   commentCount = 0,
@@ -37,28 +40,22 @@ export function ContentCard({
 }: ContentCardProps) {
   const [isMediaViewerOpen, setIsMediaViewerOpen] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [showCommentBox, setShowCommentBox] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
+  const [localLikes, setLocalLikes] = useState(likes);
   const { user } = useAuth();
 
-  const isLiked = user
-    ? Array.isArray(likes)
-      ? likes.includes(user.uid)
-      : false
-    : false;
-  const mediaType = imageUrl?.toLowerCase().match(/\.(mp4|webm|ogg)$/)
-    ? "video"
-    : "image";
+  const isLiked = user ? localLikes.includes(user.uid) : false;
 
   const handleLikeClick = async () => {
     if (!user) return;
 
     setIsLiking(true);
     try {
-      if (isLiked) {
-        await unlikePost(id.toString(), user.uid);
-      } else {
-        await likePost(id.toString(), user.uid);
-      }
+      const wasLiked = await likePost(id.toString(), user.uid);
+      setLocalLikes((prev) =>
+        wasLiked ? [...prev, user.uid] : prev.filter((uid) => uid !== user.uid)
+      );
     } catch (error) {
       console.error("Error toggling like:", error);
     } finally {
@@ -104,26 +101,34 @@ export function ContentCard({
           <p className="px-3 pb-2 text-sm dark:text-gray-300">{content}</p>
         )}
 
-        {/* Content Media */}
-        {imageUrl && (
+        {/* Media Content */}
+        {mediaUrl && (
           <div
             className="relative max-h-[500px] w-full cursor-pointer"
             onClick={() => setIsMediaViewerOpen(true)}
           >
             {mediaType === "video" ? (
-              <video
-                src={imageUrl}
-                className="w-full h-full object-contain"
-                controls
-              />
+              <div className="aspect-video">
+                <video
+                  src={mediaUrl}
+                  className="w-full h-full object-contain"
+                  controls
+                  preload="metadata"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
             ) : (
-              <Image
-                src={imageUrl}
-                alt={content || "Content image"}
-                width={800}
-                height={800}
-                className="object-contain w-full h-full"
-              />
+              <div className="relative aspect-square">
+                <Image
+                  src={mediaUrl}
+                  alt={content || "Content image"}
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  priority={false}
+                  unoptimized={true}
+                />
+              </div>
             )}
           </div>
         )}
@@ -145,21 +150,20 @@ export function ContentCard({
                 className={cn("h-4 w-4 mr-1", isLiked && "fill-current")}
               />
               <span className="text-xs">
-                {likes.length > 0 ? likes.length : ""}
+                {localLikes.length > 0 ? localLikes.length : ""}
               </span>
             </Button>
-            <Link href={`/post/${id}`}>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-gray-600 dark:text-gray-300 hover:text-[#7BD3EA]"
-              >
-                <MessageCircle className="h-4 w-4 mr-1" />
-                <span className="text-xs">
-                  {commentCount > 0 ? commentCount : ""}
-                </span>
-              </Button>
-            </Link>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-600 dark:text-gray-300 hover:text-[#7BD3EA]"
+              onClick={() => setShowCommentBox(!showCommentBox)}
+            >
+              <MessageCircle className="h-4 w-4 mr-1" />
+              <span className="text-xs">
+                {commentCount > 0 ? commentCount : ""}
+              </span>
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -170,26 +174,50 @@ export function ContentCard({
             </Button>
           </div>
 
-          {/* Comments Link */}
-          {commentCount > 0 && (
-            <Link
-              href={`/post/${id}`}
-              className="block px-2 mt-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-            >
-              View all {commentCount} comments
-            </Link>
+          {/* Stats Links */}
+          <div className="flex space-x-4 px-2 mt-1">
+            {localLikes.length > 0 && (
+              <Link
+                href={`/post/${id}`}
+                className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+              >
+                {localLikes.length} {localLikes.length === 1 ? "like" : "likes"}
+              </Link>
+            )}
+            {commentCount > 0 && (
+              <Link
+                href={`/post/${id}`}
+                className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+              >
+                {commentCount} {commentCount === 1 ? "comment" : "comments"}
+              </Link>
+            )}
+          </div>
+
+          {/* Comment Box */}
+          {showCommentBox && (
+            <div className="mt-3">
+              <CommentBox
+                postId={id}
+                onCommentAdded={() => {
+                  setShowCommentBox(false);
+                }}
+              />
+            </div>
           )}
         </div>
       </div>
 
       {/* Media Viewer Dialog */}
-      <MediaViewer
-        isOpen={isMediaViewerOpen}
-        onClose={() => setIsMediaViewerOpen(false)}
-        mediaUrl={imageUrl}
-        mediaType={mediaType}
-        alt={content}
-      />
+      {mediaUrl && (
+        <MediaViewer
+          isOpen={isMediaViewerOpen}
+          onClose={() => setIsMediaViewerOpen(false)}
+          mediaUrl={mediaUrl}
+          mediaType={mediaType}
+          alt={content}
+        />
+      )}
 
       {/* Share Dialog */}
       <ShareDialog

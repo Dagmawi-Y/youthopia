@@ -1,4 +1,4 @@
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "../ui/dialog";
 import Image from "next/image";
 
 interface MediaViewerProps {
@@ -18,32 +18,29 @@ export function MediaViewer({
 }: MediaViewerProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-transparent border-0">
-        <div
-          className="relative w-full h-full flex items-center justify-center"
-          onClick={(e) => {
-            // Close when clicking outside the media
-            if (e.target === e.currentTarget) onClose();
-          }}
-        >
-          {mediaType === "image" ? (
-            <div className="relative max-w-full max-h-[90vh]">
+      <DialogContent className="max-w-4xl w-full p-0 overflow-hidden">
+        <div className="relative w-full h-full max-h-[90vh] flex items-center justify-center bg-black">
+          {mediaType === "video" ? (
+            <video
+              src={mediaUrl}
+              className="w-full h-full object-contain"
+              controls
+              autoPlay
+              playsInline
+              preload="metadata"
+            />
+          ) : (
+            <div className="relative w-full h-full">
               <Image
                 src={mediaUrl}
                 alt={alt || "Media content"}
-                width={1920}
-                height={1080}
-                className="object-contain rounded-lg"
-                onClick={(e) => e.stopPropagation()}
+                fill
+                className="object-contain"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                priority
+                unoptimized={true}
               />
             </div>
-          ) : (
-            <video
-              src={mediaUrl}
-              controls
-              className="max-w-full max-h-[90vh] rounded-lg"
-              onClick={(e) => e.stopPropagation()}
-            />
           )}
         </div>
       </DialogContent>

@@ -15,6 +15,7 @@ import {
   Timestamp,
   serverTimestamp,
   onSnapshot,
+  increment,
 } from "firebase/firestore";
 import { auth, db } from "../firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
@@ -201,19 +202,102 @@ export const updateUserProfile = async (
   });
 };
 
-export const createPost = async (
-  data: Omit<Post, "id" | "createdAt" | "updatedAt" | "likes" | "comments">
+export const addComment = async (
+  postId: string,
+  commentData: Omit<Comment, "id" | "createdAt" | "updatedAt">
 ) => {
-  const postsRef = collection(db, "posts");
-  const postRef = doc(postsRef);
-  await setDoc(postRef, {
-    ...data,
-    id: postRef.id,
-    likes: [],
-    comments: [],
+  const commentsRef = collection(db, "posts", postId, "comments");
+  const commentRef = doc(commentsRef);
+
+  await setDoc(commentRef, {
+    ...commentData,
+    id: commentRef.id,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
+
+  // Update post's comment count
+  const postRef = doc(db, "posts", postId);
+  await updateDoc(postRef, {
+    commentCount: increment(1),
+    updatedAt: serverTimestamp(),
+  });
+
+  return commentRef.id;
+};
+
+export const getPostComments = async (postId: string) => {
+  const commentsRef = collection(db, "posts", postId, "comments");
+  const q = query(commentsRef, orderBy("createdAt", "desc"));
+  const snapshot = await getDocs(q);
+
+  return snapshot.docs.map((doc) => ({
+    ...doc.data(),
+    id: doc.id,
+    createdAt: doc.data().createdAt?.toDate(),
+    updatedAt: doc.data().updatedAt?.toDate(),
+  })) as Comment[];
+};
+
+export const likePost = async (postId: string, userId: string) => {
+  const postRef = doc(db, "posts", postId);
+  const likeRef = doc(db, "posts", postId, "likes", userId);
+
+  // Check if user has already liked
+  const likeDoc = await getDoc(likeRef);
+
+  if (likeDoc.exists()) {
+    // Unlike if already liked
+    await deleteDoc(likeRef);
+    await updateDoc(postRef, {
+      likeCount: increment(-1),
+      updatedAt: serverTimestamp(),
+    });
+    return false; // Returned false means unliked
+  } else {
+    // Like if not already liked
+    await setDoc(likeRef, {
+      userId,
+      createdAt: serverTimestamp(),
+    });
+    await updateDoc(postRef, {
+      likeCount: increment(1),
+      updatedAt: serverTimestamp(),
+    });
+    return true; // Returned true means liked
+  }
+};
+
+export const getPostLikes = async (postId: string) => {
+  const likesRef = collection(db, "posts", postId, "likes");
+  const snapshot = await getDocs(likesRef);
+  return snapshot.docs.map((doc) => doc.id); // Returns array of userIds who liked
+};
+
+export const createPost = async (
+  data: Omit<
+    Post,
+    | "id"
+    | "createdAt"
+    | "updatedAt"
+    | "likes"
+    | "comments"
+    | "likeCount"
+    | "commentCount"
+  >
+) => {
+  const postsRef = collection(db, "posts");
+  const postRef = doc(postsRef);
+
+  await setDoc(postRef, {
+    ...data,
+    id: postRef.id,
+    likeCount: 0,
+    commentCount: 0,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+
   return postRef.id;
 };
 
@@ -223,52 +307,20 @@ export const getPost = async (postId: string) => {
 
   if (!postSnap.exists()) return null;
 
+  // Get comments and likes in parallel
+  const [comments, likes] = await Promise.all([
+    getPostComments(postId),
+    getPostLikes(postId),
+  ]);
+
   const data = postSnap.data();
   return {
     ...data,
+    comments,
+    likes,
     createdAt: data.createdAt?.toDate(),
     updatedAt: data.updatedAt?.toDate(),
-    comments: data.comments.map((comment: any) => ({
-      ...comment,
-      createdAt: comment.createdAt?.toDate(),
-      updatedAt: comment.updatedAt?.toDate(),
-    })),
   } as Post;
-};
-
-export const likePost = async (postId: string, userId: string) => {
-  const postRef = doc(db, "posts", postId);
-  await updateDoc(postRef, {
-    likes: arrayUnion(userId),
-    updatedAt: serverTimestamp(),
-  });
-};
-
-export const unlikePost = async (postId: string, userId: string) => {
-  const postRef = doc(db, "posts", postId);
-  await updateDoc(postRef, {
-    likes: arrayRemove(userId),
-    updatedAt: serverTimestamp(),
-  });
-};
-
-export const addComment = async (
-  postId: string,
-  comment: Omit<Comment, "id" | "createdAt" | "updatedAt">
-) => {
-  const postRef = doc(db, "posts", postId);
-  const commentId = Math.random().toString(36).substr(2, 9);
-  const newComment = {
-    ...comment,
-    id: commentId,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  };
-  await updateDoc(postRef, {
-    comments: arrayUnion(newComment),
-    updatedAt: serverTimestamp(),
-  });
-  return commentId;
 };
 
 export const createCourse = async (courseData: Course) => {
@@ -460,17 +512,34 @@ export const getAllChallenges = async () => {
 
 export const getAllPosts = async () => {
   try {
-    const querySnapshot = await getDocs(collection(db, "posts"));
-    return querySnapshot.docs.map((doc) => ({
+    const postsRef = collection(db, "posts");
+    const q = query(postsRef, orderBy("createdAt", "desc"));
+    const querySnapshot = await getDocs(q);
+
+    // Get all posts first
+    const posts = querySnapshot.docs.map((doc) => ({
       ...doc.data(),
+      id: doc.id,
       createdAt: doc.data().createdAt?.toDate(),
       updatedAt: doc.data().updatedAt?.toDate(),
-      comments: doc.data().comments.map((comment: any) => ({
-        ...comment,
-        createdAt: comment.createdAt?.toDate(),
-        updatedAt: comment.updatedAt?.toDate(),
-      })),
-    })) as Post[];
+    }));
+
+    // Then get comments and likes for each post in parallel
+    const postsWithDetails = await Promise.all(
+      posts.map(async (post) => {
+        const [comments, likes] = await Promise.all([
+          getPostComments(post.id),
+          getPostLikes(post.id),
+        ]);
+        return {
+          ...post,
+          comments,
+          likes,
+        };
+      })
+    );
+
+    return postsWithDetails as Post[];
   } catch (error) {
     console.error("Error getting all posts:", error);
     throw error;

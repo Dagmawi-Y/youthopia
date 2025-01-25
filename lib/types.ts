@@ -31,15 +31,18 @@ export interface UserProfile {
 export interface Post {
   id: string;
   authorId: string;
-  title: string;
   authorName: string;
   authorPhotoURL?: string;
   content: string;
-  imageURL?: string;
+  mediaURL?: string;
+  mediaType?: "image" | "video";
   likes: string[];
   comments: Comment[];
+  likeCount: number;
+  commentCount: number;
   createdAt: Date;
   updatedAt: Date;
+  title: string;
   tags: string[];
 }
 
