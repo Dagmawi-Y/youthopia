@@ -4,15 +4,22 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Camera, Smile, X, Loader2 } from "lucide-react";
+import { Smile, X, Loader2, Image as ImageIcon, Video } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/context/auth-context";
 import { createPost } from "@/lib/services/firestore";
 import { uploadFile } from "@/lib/appwrite";
 import { EmojiPicker } from "./emoji-picker";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const MAX_IMAGE_SIZE = 800; // Maximum width/height for the square image
 
@@ -61,14 +68,22 @@ const processImage = (file: File): Promise<File> => {
   });
 };
 
-export function CreatePostDialog() {
-  const [isOpen, setIsOpen] = useState(false);
+interface CreatePostDialogProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function CreatePostDialog({
+  open,
+  onOpenChange,
+}: CreatePostDialogProps) {
   const [content, setContent] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
+  const [privacy, setPrivacy] = useState("everyone");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
 
@@ -145,7 +160,7 @@ export function CreatePostDialog() {
       setMediaPreview(null);
       setMediaFile(null);
       setMediaType("image");
-      setIsOpen(false);
+      onOpenChange?.(false);
     } catch (error) {
       console.error("Error creating post:", error);
       alert("Failed to create post. Please try again.");
@@ -155,24 +170,46 @@ export function CreatePostDialog() {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button className="w-full bg-[#7BD3EA] hover:bg-[#A1EEBD] text-black dark:text-white rounded-full flex items-center justify-center space-x-2 h-9">
-          <Camera className="h-4 w-4" />
-          <span className="text-sm">Create a post</span>
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Create a Post</DialogTitle>
+          <DialogTitle className="text-xl font-semibold">
+            Create a post
+          </DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
+        <div className="mt-4">
+          {/* User Info */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-10 w-10">
+                <AvatarImage
+                  src={user?.photoURL || ""}
+                  alt={user?.displayName || ""}
+                />
+                <AvatarFallback>
+                  {user?.displayName?.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="font-semibold">{user?.displayName}</div>
+            </div>
+            <Select defaultValue={privacy} onValueChange={setPrivacy}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="everyone">Everyone</SelectItem>
+                <SelectItem value="friends">Friends</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Content Input */}
           <div className="relative">
             <Textarea
               placeholder="What's on your mind?"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="min-h-[100px] resize-none pr-10"
+              className="min-h-[150px] resize-none text-lg p-4"
               maxLength={3000}
             />
             <button
@@ -188,64 +225,85 @@ export function CreatePostDialog() {
             )}
           </div>
 
+          {/* Media Preview */}
           {mediaPreview && (
-            <div className="relative">
-              {mediaType === "video" ? (
-                <video
-                  src={mediaPreview}
-                  className="w-full rounded-lg"
-                  controls
-                />
-              ) : (
-                <img
-                  src={mediaPreview}
-                  alt="Preview"
-                  className="w-full rounded-lg"
-                />
-              )}
+            <div className="relative mt-4">
+              <div className="max-h-[200px] overflow-hidden rounded-lg">
+                {mediaType === "video" ? (
+                  <video
+                    src={mediaPreview}
+                    className="w-full object-cover"
+                    controls
+                  />
+                ) : (
+                  <img
+                    src={mediaPreview}
+                    alt="Preview"
+                    className="w-full object-cover"
+                  />
+                )}
+              </div>
               <button
                 onClick={() => {
                   setMediaPreview(null);
                   setMediaFile(null);
                   setMediaType("image");
                 }}
-                className="absolute -right-2 -top-2 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
+                className="absolute top-2 right-2 bg-gray-900/60 hover:bg-gray-900/80 p-1.5 rounded-full text-white"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
           )}
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept="image/*,video/*"
-            className="hidden"
-          />
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            className="w-full"
-          >
-            Upload Photo or Video
-          </Button>
-        </div>
 
-        <Button
-          onClick={handleSubmit}
-          disabled={!content.trim() || isLoading}
-          className="w-full bg-[#7BD3EA] hover:bg-[#A1EEBD] text-black"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Posting...
-            </>
-          ) : (
-            "Post"
-          )}
-        </Button>
+          {/* Action Buttons */}
+          <div className="mt-4 flex items-center justify-between border-t pt-4">
+            <div className="flex items-center gap-2">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*,video/*"
+                className="hidden"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                className="text-gray-600 hover:text-gray-900"
+              >
+                <ImageIcon className="h-5 w-5 mr-2" />
+                <span>Photo</span>
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                className="text-gray-600 hover:text-gray-900"
+              >
+                <Video className="h-5 w-5 mr-2" />
+                <span>Video</span>
+              </Button>
+            </div>
+
+            <Button
+              onClick={handleSubmit}
+              disabled={!content.trim() || isLoading}
+              className="bg-[#7BD3EA] hover:bg-[#A1EEBD] text-black px-6"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Posting...
+                </>
+              ) : (
+                "Post"
+              )}
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -8,18 +8,20 @@ import { cn } from "@/lib/utils";
 import { CreatePostDialog } from "@/components/shared/create-post-dialog";
 import { getAllPosts } from "@/lib/services/firestore";
 import type { Post } from "@/lib/types";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/lib/context/auth-context";
 
 const FEED_TABS = [
   { id: "all", label: "All" },
   { id: "my-feed", label: "My Feed" },
-  { id: "community", label: "Community" },
-  { id: "whats-new", label: "What's New" },
 ];
 
 function ActivityContent() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("all");
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
 
   useEffect(() => {
     const loadPosts = async () => {
@@ -38,12 +40,42 @@ function ActivityContent() {
 
   return (
     <div className="max-w-xl mx-auto px-4 py-4">
-      {/* Create Post Button */}
+      {/* Create Post Section */}
       <div className="mb-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border border-gray-200 dark:border-gray-700">
-          <CreatePostDialog />
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-10 w-10">
+              <AvatarImage
+                src={user?.photoURL || ""}
+                alt={user?.displayName || ""}
+              />
+              <AvatarFallback>
+                {user?.displayName?.slice(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <button
+              onClick={() => setIsCreatePostOpen(true)}
+              className="flex-1 text-left px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full text-gray-500 dark:text-gray-400 text-sm"
+            >
+              What's on your mind?
+            </button>
+          </div>
+          <div className="flex items-center mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+            <button
+              onClick={() => setIsCreatePostOpen(true)}
+              className="flex items-center gap-2 px-4 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-300"
+            >
+              <img src="/media.svg" alt="Media" className="w-5 h-5" />
+              <span className="text-sm font-medium">Photo/Video</span>
+            </button>
+          </div>
         </div>
       </div>
+
+      <CreatePostDialog
+        open={isCreatePostOpen}
+        onOpenChange={setIsCreatePostOpen}
+      />
 
       {/* Feed Tabs */}
       <div className="mb-4 flex space-x-1 bg-white dark:bg-gray-800 p-1 rounded-lg border border-gray-200 dark:border-gray-700">
