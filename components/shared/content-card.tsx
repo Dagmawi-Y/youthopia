@@ -103,30 +103,27 @@ export function ContentCard({
 
         {/* Media Content */}
         {mediaUrl && (
-          <div
-            className="relative max-h-[500px] w-full cursor-pointer"
-            onClick={() => setIsMediaViewerOpen(true)}
-          >
+          <div className="relative w-full overflow-hidden">
             {mediaType === "video" ? (
-              <div className="aspect-video">
+              <div className="aspect-video w-full bg-black">
                 <video
+                  key={mediaUrl}
                   src={mediaUrl}
-                  className="w-full h-full object-contain"
+                  className="w-full "
                   controls
+                  playsInline
                   preload="metadata"
-                  onClick={(e) => e.stopPropagation()}
                 />
               </div>
             ) : (
-              <div className="relative aspect-square">
-                <Image
+              <div
+                className="relative w-full pt-[100%]"
+                onClick={() => setIsMediaViewerOpen(true)}
+              >
+                <img
                   src={mediaUrl}
                   alt={content || "Content image"}
-                  fill
-                  className="object-contain"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  priority={false}
-                  unoptimized={true}
+                  className="absolute top-0 left-0 w-full  object-contain cursor-pointer"
                 />
               </div>
             )}
@@ -209,7 +206,7 @@ export function ContentCard({
       </div>
 
       {/* Media Viewer Dialog */}
-      {mediaUrl && (
+      {mediaUrl && mediaType === "image" && (
         <MediaViewer
           isOpen={isMediaViewerOpen}
           onClose={() => setIsMediaViewerOpen(false)}

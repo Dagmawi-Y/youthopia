@@ -80,7 +80,8 @@ function ActivityContent() {
               id={post.id}
               username={post.authorName}
               userAvatar={post.authorPhotoURL}
-              imageUrl={post.imageURL || ""}
+              mediaUrl={post.mediaURL || ""}
+              mediaType={post.mediaType}
               content={post.content}
               likes={post.likes || []}
               commentCount={post.comments.length}
