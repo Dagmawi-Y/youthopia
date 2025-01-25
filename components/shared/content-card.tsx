@@ -117,13 +117,13 @@ export function ContentCard({
               </div>
             ) : (
               <div
-                className="relative w-full pt-[100%]"
+                className="relative w-full pt-[56.25%]"
                 onClick={() => setIsMediaViewerOpen(true)}
               >
                 <img
                   src={mediaUrl}
                   alt={content || "Content image"}
-                  className="absolute top-0 left-0 w-full  object-contain cursor-pointer"
+                  className="absolute top-0 left-0 w-full h-full object-cover cursor-pointer"
                 />
               </div>
             )}
