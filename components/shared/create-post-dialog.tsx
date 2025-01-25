@@ -9,11 +9,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Camera, Smile, X, Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import data from "@emoji-mart/data";
-import Picker from "@emoji-mart/react";
 import { useAuth } from "@/lib/context/auth-context";
 import { createPost } from "@/lib/services/firestore";
 import { uploadFile } from "@/lib/appwrite";
+import { EmojiPicker } from "./emoji-picker";
 
 export function CreatePostDialog() {
   const [isOpen, setIsOpen] = useState(false);
@@ -121,50 +120,7 @@ export function CreatePostDialog() {
             </button>
             {showEmojiPicker && (
               <div className="absolute right-0 top-10 z-50">
-                <Picker
-                  data={data}
-                  onEmojiSelect={handleEmojiSelect}
-                  categories={[
-                    "frequent",
-                    "people",
-                    "nature",
-                    "foods",
-                    "activity",
-                    "places",
-                    "objects",
-                    "symbols",
-                  ]}
-                  exceptEmojis={[
-                    "middle_finger",
-                    "fu",
-                    "hankey",
-                    "poop",
-                    "shit",
-                    "skull",
-                    "skull_and_crossbones",
-                    "smoking",
-                    "cigarette",
-                    "knife",
-                    "gun",
-                    "bomb",
-                    "man-kiss-man",
-                    "woman-kiss-woman",
-                    "man-heart-man",
-                    "woman-heart-woman",
-                    "man-man-boy",
-                    "man-man-boy-boy",
-                    "man-man-girl",
-                    "man-man-girl-boy",
-                    "man-man-girl-girl",
-                    "woman-woman-boy",
-                    "woman-woman-boy-boy",
-                    "woman-woman-girl",
-                    "woman-woman-girl-boy",
-                    "woman-woman-girl-girl",
-                    "couplekiss",
-                    "family",
-                  ]}
-                />
+                <EmojiPicker onEmojiSelect={handleEmojiSelect} />
               </div>
             )}
           </div>
