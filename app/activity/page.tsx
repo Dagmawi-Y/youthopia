@@ -82,7 +82,7 @@ function ActivityContent() {
               userAvatar={post.authorPhotoURL}
               imageUrl={post.imageURL || ""}
               content={post.content}
-              likes={post.likes.length}
+              likes={post.likes || []}
               commentCount={post.comments.length}
               timestamp={post.createdAt.toLocaleString()}
             />
