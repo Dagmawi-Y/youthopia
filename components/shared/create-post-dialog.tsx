@@ -14,6 +14,53 @@ import { createPost } from "@/lib/services/firestore";
 import { uploadFile } from "@/lib/appwrite";
 import { EmojiPicker } from "./emoji-picker";
 
+const MAX_IMAGE_SIZE = 800; // Maximum width/height for the square image
+
+const processImage = (file: File): Promise<File> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      // Create a square canvas with the minimum dimension
+      const size = Math.min(img.width, img.height, MAX_IMAGE_SIZE);
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("Could not get canvas context"));
+        return;
+      }
+
+      // Calculate cropping position to center the image
+      const sx = (img.width - size) / 2;
+      const sy = (img.height - size) / 2;
+
+      // Draw the cropped and scaled image
+      ctx.drawImage(img, sx, sy, size, size, 0, 0, size, size);
+
+      // Convert canvas to blob
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error("Could not create blob"));
+            return;
+          }
+          // Create a new file from the blob
+          const processedFile = new File([blob], file.name, {
+            type: "image/jpeg",
+            lastModified: Date.now(),
+          });
+          resolve(processedFile);
+        },
+        "image/jpeg",
+        0.9
+      );
+    };
+    img.onerror = () => reject(new Error("Failed to load image"));
+    img.src = URL.createObjectURL(file);
+  });
+};
+
 export function CreatePostDialog() {
   const [isOpen, setIsOpen] = useState(false);
   const [content, setContent] = useState("");
@@ -25,7 +72,7 @@ export function CreatePostDialog() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -50,10 +97,22 @@ export function CreatePostDialog() {
       return;
     }
 
-    setMediaFile(file);
-    setMediaType(isVideo ? "video" : "image");
-    const objectUrl = URL.createObjectURL(file);
-    setMediaPreview(objectUrl);
+    try {
+      if (isImage) {
+        const processedFile = await processImage(file);
+        setMediaFile(processedFile);
+        const objectUrl = URL.createObjectURL(processedFile);
+        setMediaPreview(objectUrl);
+      } else {
+        setMediaFile(file);
+        const objectUrl = URL.createObjectURL(file);
+        setMediaPreview(objectUrl);
+      }
+      setMediaType(isVideo ? "video" : "image");
+    } catch (error) {
+      console.error("Error processing image:", error);
+      alert("Failed to process image. Please try again.");
+    }
   };
 
   const handleEmojiSelect = (emoji: any) => {

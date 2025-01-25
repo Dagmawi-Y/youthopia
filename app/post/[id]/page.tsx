@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 import { ContentCard } from "@/components/shared/content-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getPost } from "@/lib/services/firestore";
+import { getPost, getUserProfile } from "@/lib/services/firestore";
 import type { Post, Comment } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 
@@ -60,7 +60,7 @@ function LikesList({
     <div className="space-y-2">
       {likes.map((userId) => (
         <div key={userId} className="text-sm text-gray-600 dark:text-gray-300">
-          {usernames[userId] || userId}
+          {usernames[userId] || "Loading..."}
         </div>
       ))}
     </div>
@@ -71,17 +71,36 @@ export default function PostPage({ params }: { params: { id: string } }) {
   const [post, setPost] = useState<Post | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"comments" | "likes">("comments");
+  const [usernames, setUsernames] = useState<Record<string, string>>({});
   const router = useRouter();
+  const postId = params.id;
 
   useEffect(() => {
     const loadPost = async () => {
       try {
-        const fetchedPost = await getPost(params.id);
+        const fetchedPost = await getPost(postId);
         if (!fetchedPost) {
           router.push("/activity");
           return;
         }
         setPost(fetchedPost);
+
+        // Fetch usernames for likes
+        const usernamesMap: Record<string, string> = {};
+        for (const userId of fetchedPost.likes) {
+          try {
+            const userProfile = await getUserProfile(userId);
+            if (userProfile) {
+              usernamesMap[userId] =
+                userProfile.displayName ||
+                userProfile.username ||
+                "Unknown User";
+            }
+          } catch (error) {
+            console.error(`Error fetching user profile for ${userId}:`, error);
+          }
+        }
+        setUsernames(usernamesMap);
       } catch (error) {
         console.error("Error loading post:", error);
         router.push("/activity");
@@ -91,7 +110,7 @@ export default function PostPage({ params }: { params: { id: string } }) {
     };
 
     loadPost();
-  }, [params.id, router]);
+  }, [postId, router]);
 
   return (
     <ProtectedRoute>
@@ -141,7 +160,7 @@ export default function PostPage({ params }: { params: { id: string } }) {
               {activeTab === "comments" ? (
                 <CommentList comments={post.comments} />
               ) : (
-                <LikesList likes={post.likes} usernames={{}} /> // You'll need to fetch usernames
+                <LikesList likes={post.likes} usernames={usernames} />
               )}
             </div>
           </div>
