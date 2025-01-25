@@ -2,31 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { CategoryFilters } from "@/components/shared/category-filters";
-import {
-  Sparkles,
-  Users,
-  Palette,
-  Code,
-  Brain,
-  Mic2,
-  Gamepad2,
-} from "lucide-react";
+import { Sparkles } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import * as FirestoreService from "@/lib/services/firestore";
 import type { Challenge } from "@/lib/types";
 import { getDaysLeft } from "@/lib/types";
-
-const CATEGORIES = [
-  { id: "featured", label: "Featured", icon: Sparkles },
-  { id: "all", label: "All", icon: Users },
-  { id: "community", label: "Community", icon: Users },
-  { id: "art", label: "Art & Craft", icon: Palette },
-  { id: "stem", label: "STEM", icon: Code },
-  { id: "life-skills", label: "Life Skills", icon: Brain },
-  { id: "performing-arts", label: "Performing Arts", icon: Mic2 },
-  { id: "gaming", label: "Gaming", icon: Gamepad2 },
-];
 
 function ChallengeCard({ challenge }: { challenge: Challenge }) {
   const daysLeft = getDaysLeft(challenge.deadline);
@@ -51,7 +32,6 @@ function ChallengeCard({ challenge }: { challenge: Challenge }) {
       <div className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Users className="h-4 w-4 text-gray-500" />
             <span className="text-sm text-gray-500">
               {challenge.participants?.length || 0} participants
             </span>
@@ -71,13 +51,10 @@ function ChallengeCard({ challenge }: { challenge: Challenge }) {
 function EmptyState() {
   return (
     <div className="text-center py-12">
-      <div className="w-24 h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-        <Sparkles className="w-12 h-12 text-gray-400" />
-      </div>
-      <h3 className="text-lg font-semibold text-gray-900">No Challenges Yet</h3>
-      <p className="mt-1 text-sm text-gray-500">
-        Check back soon for new challenges!
-      </p>
+      <h3 className="text-lg font-medium text-gray-900 mb-2">
+        No challenges found
+      </h3>
+      <p className="text-gray-500">Try adjusting your filters</p>
     </div>
   );
 }
@@ -87,22 +64,48 @@ export default function ChallengesPage() {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [topics, setTopics] = useState<
+    Array<{
+      id: string;
+      name: string;
+      description: string;
+      createdAt: Date;
+      updatedAt: Date;
+    }>
+  >([]);
 
   useEffect(() => {
-    const fetchChallenges = async () => {
+    const fetchData = async () => {
       try {
-        const data = await FirestoreService.getAllChallenges();
-        setChallenges(data);
+        const [fetchedChallenges, fetchedTopics] = await Promise.all([
+          FirestoreService.getAllChallenges(),
+          FirestoreService.getAllTopics(),
+        ]);
+        setChallenges(fetchedChallenges);
+        setTopics(
+          fetchedTopics as Array<{
+            id: string;
+            name: string;
+            description: string;
+            createdAt: Date;
+            updatedAt: Date;
+          }>
+        );
       } catch (err) {
-        console.error("Error fetching challenges:", err);
+        console.error("Error fetching data:", err);
         setError("Failed to load challenges");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchChallenges();
+    fetchData();
   }, []);
+
+  const filteredChallenges = challenges.filter((challenge) => {
+    if (selectedCategory === "featured") return true;
+    return challenge.topics?.includes(selectedCategory);
+  });
 
   if (loading) {
     return (
@@ -119,6 +122,15 @@ export default function ChallengesPage() {
       </div>
     );
   }
+
+  const categories = [
+    { id: "featured", label: "Featured", icon: Sparkles },
+    ...topics.map((topic) => ({
+      id: topic.name,
+      label: topic.name,
+      description: topic.description,
+    })),
+  ];
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -151,16 +163,16 @@ export default function ChallengesPage() {
       {/* Category Filters */}
       <div className="mb-8">
         <CategoryFilters
-          categories={CATEGORIES}
+          categories={categories}
           selectedCategory={selectedCategory}
           onSelectCategory={setSelectedCategory}
         />
       </div>
 
       {/* Challenge Grid */}
-      {challenges.length > 0 ? (
+      {filteredChallenges.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {challenges.map((challenge) => (
+          {filteredChallenges.map((challenge) => (
             <ChallengeCard key={challenge.id} challenge={challenge} />
           ))}
         </div>

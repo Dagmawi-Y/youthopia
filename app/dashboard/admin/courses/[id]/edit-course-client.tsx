@@ -96,6 +96,15 @@ export function EditCourseClient({ courseId }: { courseId: string }) {
     order: 0,
   });
   const [isTopicsOpen, setIsTopicsOpen] = useState(false);
+  const [topics, setTopics] = useState<
+    Array<{
+      id: string;
+      name: string;
+      description: string;
+      createdAt: Date;
+      updatedAt: Date;
+    }>
+  >([]);
   const topicsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -116,6 +125,26 @@ export function EditCourseClient({ courseId }: { courseId: string }) {
 
     fetchCourse();
   }, [courseId]);
+
+  useEffect(() => {
+    const fetchTopics = async () => {
+      try {
+        const fetchedTopics = await FirestoreService.getAllTopics();
+        setTopics(
+          fetchedTopics as Array<{
+            id: string;
+            name: string;
+            description: string;
+            createdAt: Date;
+            updatedAt: Date;
+          }>
+        );
+      } catch (error) {
+        console.error("Error fetching topics:", error);
+      }
+    };
+    fetchTopics();
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -395,7 +424,7 @@ export function EditCourseClient({ courseId }: { courseId: string }) {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Course Topics
                   </label>
-                  <div className="relative">
+                  <div className="relative" ref={topicsRef}>
                     <button
                       type="button"
                       onClick={() => setIsTopicsOpen(!isTopicsOpen)}
@@ -421,21 +450,22 @@ export function EditCourseClient({ courseId }: { courseId: string }) {
                     {isTopicsOpen && (
                       <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg">
                         <div className="p-2 space-y-1 max-h-60 overflow-auto">
-                          {COURSE_TOPICS.map((topic) => (
+                          {topics.map((topic) => (
                             <label
-                              key={topic}
+                              key={topic.id}
                               className="flex items-center px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer"
                             >
                               <input
                                 type="checkbox"
                                 checked={
-                                  courseData.topics?.includes(topic) || false
+                                  courseData.topics?.includes(topic.name) ||
+                                  false
                                 }
                                 onChange={(e) => {
                                   const newTopics = e.target.checked
-                                    ? [...(courseData.topics || []), topic]
+                                    ? [...(courseData.topics || []), topic.name]
                                     : courseData.topics?.filter(
-                                        (t) => t !== topic
+                                        (t) => t !== topic.name
                                       ) || [];
                                   setCourseData({
                                     ...courseData,
@@ -444,9 +474,16 @@ export function EditCourseClient({ courseId }: { courseId: string }) {
                                 }}
                                 className="w-4 h-4 rounded border-gray-300 text-[#7BD3EA] focus:ring-[#7BD3EA]"
                               />
-                              <span className="ml-3 text-gray-900 dark:text-gray-100">
-                                {topic}
-                              </span>
+                              <div className="ml-3">
+                                <span className="text-gray-900 dark:text-gray-100 font-medium">
+                                  {topic.name}
+                                </span>
+                                {topic.description && (
+                                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    {topic.description}
+                                  </p>
+                                )}
+                              </div>
                             </label>
                           ))}
                         </div>

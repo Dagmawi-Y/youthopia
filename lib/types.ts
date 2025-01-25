@@ -107,6 +107,7 @@ export interface Challenge {
   createdAt: Timestamp;
   updatedAt: Timestamp;
   submissions: Submission[];
+  topics?: string[];
 }
 
 export const getDaysLeft = (deadline?: Timestamp): number => {

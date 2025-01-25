@@ -8,15 +8,6 @@ import { Button } from "@/components/ui/button";
 import * as FirestoreService from "@/lib/services/firestore";
 import type { Course } from "@/lib/types";
 
-const CATEGORIES = [
-  { id: "all", label: "All" },
-  { id: "art", label: "Art & Craft", icon: Palette },
-  { id: "stem", label: "STEM", icon: Code },
-  { id: "life-skills", label: "Life Skills", icon: Brain },
-  { id: "performing-arts", label: "Performing Arts", icon: Mic2 },
-  { id: "gaming", label: "Gaming", icon: Gamepad2 },
-];
-
 function CourseCard({ course }: { course: Course }) {
   return (
     <div className="group relative bg-white rounded-xl shadow-sm overflow-hidden">
@@ -49,13 +40,10 @@ function CourseCard({ course }: { course: Course }) {
 function EmptyState() {
   return (
     <div className="text-center py-12">
-      <div className="w-24 h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-        <BookOpen className="w-12 h-12 text-gray-400" />
-      </div>
-      <h3 className="text-lg font-semibold text-gray-900">No Courses Yet</h3>
-      <p className="mt-1 text-sm text-gray-500">
-        Check back soon for new courses!
-      </p>
+      <h3 className="text-lg font-medium text-gray-900 mb-2">
+        No courses found
+      </h3>
+      <p className="text-gray-500">Try adjusting your filters</p>
     </div>
   );
 }
@@ -65,22 +53,48 @@ export default function LibraryPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [topics, setTopics] = useState<
+    Array<{
+      id: string;
+      name: string;
+      description: string;
+      createdAt: Date;
+      updatedAt: Date;
+    }>
+  >([]);
 
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchData = async () => {
       try {
-        const data = await FirestoreService.getAllCourses();
-        setCourses(data);
+        const [fetchedCourses, fetchedTopics] = await Promise.all([
+          FirestoreService.getAllCourses(),
+          FirestoreService.getAllTopics(),
+        ]);
+        setCourses(fetchedCourses);
+        setTopics(
+          fetchedTopics as Array<{
+            id: string;
+            name: string;
+            description: string;
+            createdAt: Date;
+            updatedAt: Date;
+          }>
+        );
       } catch (err) {
-        console.error("Error fetching courses:", err);
+        console.error("Error fetching data:", err);
         setError("Failed to load courses");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCourses();
+    fetchData();
   }, []);
+
+  const filteredCourses = courses.filter((course) => {
+    if (selectedCategory === "all") return true;
+    return course.topics?.includes(selectedCategory);
+  });
 
   if (loading) {
     return (
@@ -98,21 +112,30 @@ export default function LibraryPage() {
     );
   }
 
+  const categories = [
+    { id: "all", label: "All" },
+    ...topics.map((topic) => ({
+      id: topic.name,
+      label: topic.name,
+      description: topic.description,
+    })),
+  ];
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Category Filters */}
       <div className="mb-8">
         <CategoryFilters
-          categories={CATEGORIES}
+          categories={categories}
           selectedCategory={selectedCategory}
           onSelectCategory={setSelectedCategory}
         />
       </div>
 
       {/* Course Grid */}
-      {courses.length > 0 ? (
+      {filteredCourses.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {courses.map((course) => (
+          {filteredCourses.map((course) => (
             <CourseCard key={course.id} course={course} />
           ))}
         </div>
