@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { MOCK_POSTS } from "@/lib/constants";
+import { useEffect, useState } from "react";
 import { ContentCard } from "@/components/shared/content-card";
 import { Button } from "@/components/ui/button";
-import { Camera } from "lucide-react";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 import { cn } from "@/lib/utils";
+import { CreatePostDialog } from "@/components/shared/create-post-dialog";
+import { getAllPosts } from "@/lib/services/firestore";
+import type { Post } from "@/lib/types";
 
 const FEED_TABS = [
   { id: "all", label: "All" },
@@ -17,17 +18,30 @@ const FEED_TABS = [
 
 function ActivityContent() {
   const [activeTab, setActiveTab] = useState("all");
-  const [posts] = useState(MOCK_POSTS);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadPosts = async () => {
+      try {
+        const fetchedPosts = await getAllPosts();
+        setPosts(fetchedPosts);
+      } catch (error) {
+        console.error("Error loading posts:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPosts();
+  }, []);
 
   return (
     <div className="max-w-xl mx-auto px-4 py-4">
       {/* Create Post Button */}
       <div className="mb-4">
         <div className="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border border-gray-200 dark:border-gray-700">
-          <Button className="w-full bg-[#7BD3EA] hover:bg-[#A1EEBD] text-black dark:text-white rounded-full flex items-center justify-center space-x-2 h-9">
-            <Camera className="h-4 w-4" />
-            <span className="text-sm">Create a post</span>
-          </Button>
+          <CreatePostDialog />
         </div>
       </div>
 
@@ -53,18 +67,27 @@ function ActivityContent() {
 
       {/* Content Feed */}
       <div className="space-y-4">
-        {posts.map((post) => (
-          <ContentCard
-            key={post.id}
-            id={post.id}
-            username={post.username}
-            imageUrl={post.imageUrl}
-            content={post.caption}
-            likes={post.likes}
-            commentCount={post.comments}
-            timestamp="1d ago"
-          />
-        ))}
+        {isLoading ? (
+          <div className="text-center py-8 text-gray-500">Loading posts...</div>
+        ) : posts.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            No posts yet. Be the first to share something!
+          </div>
+        ) : (
+          posts.map((post) => (
+            <ContentCard
+              key={post.id}
+              id={post.id}
+              username={post.authorName}
+              userAvatar={post.authorPhotoURL}
+              imageUrl={post.imageURL || ""}
+              content={post.content}
+              likes={post.likes.length}
+              commentCount={post.comments.length}
+              timestamp={post.createdAt.toLocaleString()}
+            />
+          ))
+        )}
       </div>
     </div>
   );
