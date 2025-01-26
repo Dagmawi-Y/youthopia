@@ -248,25 +248,36 @@ export const likePost = async (postId: string, userId: string) => {
   const likeDoc = await getDoc(likeRef);
 
   if (likeDoc.exists()) {
-    // Unlike if already liked
+    // Unlike the post
     await deleteDoc(likeRef);
     await updateDoc(postRef, {
+      likes: arrayRemove(userId),
       likeCount: increment(-1),
-      updatedAt: serverTimestamp(),
     });
-    return false; // Returned false means unliked
+    return false; // Post was unliked
   } else {
-    // Like if not already liked
+    // Like the post
     await setDoc(likeRef, {
       userId,
       createdAt: serverTimestamp(),
     });
     await updateDoc(postRef, {
+      likes: arrayUnion(userId),
       likeCount: increment(1),
-      updatedAt: serverTimestamp(),
     });
-    return true; // Returned true means liked
+    return true; // Post was liked
   }
+};
+
+export const unlikePost = async (postId: string, userId: string) => {
+  const postRef = doc(db, "posts", postId);
+  const likeRef = doc(db, "posts", postId, "likes", userId);
+
+  await deleteDoc(likeRef);
+  await updateDoc(postRef, {
+    likes: arrayRemove(userId),
+    likeCount: increment(-1),
+  });
 };
 
 export const getPostLikes = async (postId: string) => {
