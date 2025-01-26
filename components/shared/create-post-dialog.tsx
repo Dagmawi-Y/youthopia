@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +15,7 @@ import {
   Video,
   User,
   Trophy,
+  ImagePlus,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/context/auth-context";
@@ -29,6 +31,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { UserProfile } from "@/lib/types";
+import data from "@emoji-mart/data";
+import Picker from "@emoji-mart/react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import Image from "next/image";
 
 const MAX_IMAGE_SIZE = 800;
 
@@ -284,11 +294,14 @@ export function CreatePostDialog({
                     controls
                   />
                 ) : (
-                  <img
-                    src={mediaPreview}
-                    alt="Preview"
-                    className="w-full object-cover"
-                  />
+                  <div className="relative w-full aspect-video">
+                    <Image
+                      src={mediaPreview}
+                      alt="Preview"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
                 )}
               </div>
               <button

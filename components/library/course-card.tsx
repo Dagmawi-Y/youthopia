@@ -3,6 +3,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface CourseCardProps {
   course: Course;
@@ -17,11 +18,14 @@ export function CourseCard({ course }: CourseCardProps) {
 
   return (
     <Card className="w-[300px] flex flex-col">
-      <img
-        src={course.imageURL}
-        alt={course.title}
-        className="h-40 w-full object-cover rounded-t-lg"
-      />
+      <div className="relative h-40 w-full">
+        <Image
+          src={course.imageURL}
+          alt={course.title}
+          fill
+          className="object-cover rounded-t-lg"
+        />
+      </div>
       <CardContent className="pt-4">
         <div className="flex items-center justify-between mb-2">
           <h3 className="font-semibold text-lg">{course.title}</h3>
