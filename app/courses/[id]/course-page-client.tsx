@@ -12,26 +12,62 @@ import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { toast } from "sonner";
 import { Star, Clock, Award, PlayCircle, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Highlight from "@tiptap/extension-highlight";
+import Typography from "@tiptap/extension-typography";
+import Link from "@tiptap/extension-link";
+import CodeBlock from "@tiptap/extension-code-block";
+import { Image as TiptapImage } from "@tiptap/extension-image";
 
 export default function CoursePageClient({ courseId }: { courseId: string }) {
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEnrolled, setIsEnrolled] = useState(false);
+  const [progress, setProgress] = useState(0);
   const { user } = useAuth();
   const router = useRouter();
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Highlight,
+      Typography,
+      Link.configure({
+        openOnClick: false,
+      }),
+      CodeBlock,
+      TiptapImage,
+    ],
+    content: "",
+    editable: false,
+  });
 
   useEffect(() => {
     const fetchCourse = async () => {
       try {
         const courseDoc = await getDoc(doc(db, "courses", courseId));
         if (courseDoc.exists()) {
-          setCourse({ ...(courseDoc.data() as Course), id: courseDoc.id });
-        }
+          const courseData = {
+            ...(courseDoc.data() as Course),
+            id: courseDoc.id,
+          };
+          setCourse(courseData);
 
-        if (user) {
-          const userDoc = await getDoc(doc(db, "users", user.uid));
-          const userData = userDoc.data() as UserProfile;
-          setIsEnrolled(userData.completedCourses.includes(courseId));
+          if (user) {
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            const userData = userDoc.data() as UserProfile;
+            setIsEnrolled(userData.completedCourses.includes(courseId));
+
+            // Calculate progress
+            const moduleProgress =
+              userData.courseProgress?.[courseId]?.completedModules;
+            if (moduleProgress) {
+              const completedCount = moduleProgress.filter(Boolean).length;
+              const totalModules = courseData.modules.length;
+              setProgress((completedCount / totalModules) * 100);
+            }
+          }
         }
 
         setLoading(false);
@@ -45,6 +81,13 @@ export default function CoursePageClient({ courseId }: { courseId: string }) {
     fetchCourse();
   }, [courseId, user]);
 
+  useEffect(() => {
+    if (editor && course?.modules[0]) {
+      // Show the first module's content as preview
+      editor.commands.setContent(course.modules[0].content);
+    }
+  }, [course, editor]);
+
   const handleEnroll = async () => {
     if (!user) {
       toast.error("Please sign in to enroll in courses");
@@ -54,6 +97,9 @@ export default function CoursePageClient({ courseId }: { courseId: string }) {
     try {
       await updateDoc(doc(db, "users", user.uid), {
         completedCourses: arrayUnion(courseId),
+        [`courseProgress.${courseId}.completedModules`]: new Array(
+          course?.modules.length || 0
+        ).fill(false),
       });
 
       await updateDoc(doc(db, "courses", courseId), {
@@ -130,9 +176,9 @@ export default function CoursePageClient({ courseId }: { courseId: string }) {
                       <PlayCircle className="w-5 h-5" />
                       <div>
                         <h3 className="font-semibold">{module.title}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {module.content.substring(0, 100)}...
-                        </p>
+                        <div className="prose prose-sm dark:prose-invert mt-2">
+                          <EditorContent editor={editor} />
+                        </div>
                       </div>
                     </div>
                   </Card>
@@ -180,9 +226,9 @@ export default function CoursePageClient({ courseId }: { courseId: string }) {
               <div>
                 <div className="flex justify-between mb-2">
                   <span className="font-semibold">Progress</span>
-                  <span>0%</span>
+                  <span>{Math.round(progress)}%</span>
                 </div>
-                <Progress value={0} className="h-2" />
+                <Progress value={progress} className="h-2" />
               </div>
 
               <div className="flex items-center justify-between">
