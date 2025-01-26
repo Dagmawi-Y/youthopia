@@ -687,3 +687,35 @@ export const getUserProfileByUsername = async (username: string) => {
     throw error;
   }
 };
+
+export const onPostsChange = (callback: (posts: Post[]) => void) => {
+  const postsRef = collection(db, "posts");
+  const q = query(postsRef, orderBy("createdAt", "desc"));
+
+  return onSnapshot(q, async (snapshot) => {
+    // Get all posts first
+    const posts = snapshot.docs.map((doc) => ({
+      ...doc.data(),
+      id: doc.id,
+      createdAt: doc.data().createdAt?.toDate() || new Date(),
+      updatedAt: doc.data().updatedAt?.toDate() || new Date(),
+    }));
+
+    // Then get comments and likes for each post in parallel
+    const postsWithDetails = await Promise.all(
+      posts.map(async (post) => {
+        const [comments, likes] = await Promise.all([
+          getPostComments(post.id),
+          getPostLikes(post.id),
+        ]);
+        return {
+          ...post,
+          comments,
+          likes,
+        };
+      })
+    );
+
+    callback(postsWithDetails as Post[]);
+  });
+};

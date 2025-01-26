@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 import { cn } from "@/lib/utils";
 import { CreatePostDialog } from "@/components/shared/create-post-dialog";
-import { getAllPosts } from "@/lib/services/firestore";
+import { onPostsChange } from "@/lib/services/firestore";
 import type { Post } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/context/auth-context";
@@ -26,18 +26,14 @@ function ActivityContent() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const loadPosts = async () => {
-      try {
-        const fetchedPosts = await getAllPosts();
-        setPosts(fetchedPosts);
-      } catch (error) {
-        console.error("Error loading posts:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    // Subscribe to real-time updates
+    const unsubscribe = onPostsChange((updatedPosts) => {
+      setPosts(updatedPosts);
+      setIsLoading(false);
+    });
 
-    loadPosts();
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, []);
 
   return (
@@ -94,7 +90,7 @@ function ActivityContent() {
       <CreatePostDialog
         open={isCreatePostOpen}
         onOpenChange={setIsCreatePostOpen}
-        fileInputRef={fileInputRef}
+        fileInputRef={fileInputRef as React.RefObject<HTMLInputElement>}
       />
 
       {/* Feed Tabs */}
@@ -136,7 +132,7 @@ function ActivityContent() {
               mediaType={post.mediaType}
               content={post.content}
               likes={post.likes || []}
-              commentCount={post.comments.length}
+              commentCount={post.comments?.length || 0}
               timestamp={post.createdAt.toLocaleString()}
             />
           ))
