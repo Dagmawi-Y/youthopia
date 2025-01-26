@@ -13,6 +13,7 @@ import {
   updateUserProfile,
 } from "@/lib/services/firestore";
 import { UserProfile, FriendRequest } from "@/lib/types";
+import { BadgesSection } from "@/components/shared/badges-section";
 
 interface PageProps {
   params: Promise<{
@@ -276,17 +277,50 @@ export default function UserProfilePage({ params }: PageProps) {
                 </form>
               ) : (
                 <div>
-                  <h2 className="text-lg font-medium text-gray-900 dark:text-white">
-                    Bio
+                  <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                    About
                   </h2>
-                  <p className="mt-1 text-gray-600 dark:text-gray-400">
+                  <p className="text-gray-600 dark:text-gray-400">
                     {profile.bio || "No bio yet"}
                   </p>
                 </div>
               )}
 
-              {/* Friend Requests Section (only shown on own profile) */}
-              {isOwnProfile && friendRequests.length > 0 && !isEditing && (
+              {/* Stats Section */}
+              <div>
+                <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                  Stats
+                </h2>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-primary">
+                      {profile.points}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Points
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-primary">
+                      {profile.completedChallenges.length}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Challenges
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-primary">
+                      {profile.completedCourses.length}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Courses
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Friend Requests Section (if own profile) */}
+              {isOwnProfile && friendRequests.length > 0 && (
                 <div>
                   <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
                     Friend Requests
@@ -295,19 +329,17 @@ export default function UserProfilePage({ params }: PageProps) {
                     {friendRequests.map((request) => (
                       <div
                         key={request.id}
-                        className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg"
+                        className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-4 rounded-lg"
                       >
-                        <div>
-                          <p className="font-medium text-gray-900 dark:text-white">
-                            From: {request.fromUserId}
-                          </p>
-                        </div>
+                        <span className="text-gray-900 dark:text-white">
+                          {request.fromUserId}
+                        </span>
                         <div className="space-x-2">
                           <button
                             onClick={() =>
                               handleRespondToRequest(request.id, "accepted")
                             }
-                            className="px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600"
+                            className="px-3 py-1 text-sm text-white bg-green-500 rounded hover:bg-green-600"
                           >
                             Accept
                           </button>
@@ -315,9 +347,9 @@ export default function UserProfilePage({ params }: PageProps) {
                             onClick={() =>
                               handleRespondToRequest(request.id, "rejected")
                             }
-                            className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-md hover:bg-red-600"
+                            className="px-3 py-1 text-sm text-white bg-red-500 rounded hover:bg-red-600"
                           >
-                            Reject
+                            Decline
                           </button>
                         </div>
                       </div>
@@ -325,81 +357,16 @@ export default function UserProfilePage({ params }: PageProps) {
                   </div>
                 </div>
               )}
-
-              {/* Stats Section */}
-              {!isEditing && (
-                <>
-                  <div>
-                    <h2 className="text-lg font-medium text-gray-900 dark:text-white">
-                      Stats
-                    </h2>
-                    <dl className="mt-2 grid grid-cols-1 gap-5 sm:grid-cols-4">
-                      <div className="px-4 py-5 bg-gray-50 dark:bg-gray-900 shadow rounded-lg overflow-hidden sm:p-6">
-                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                          Points Earned
-                        </dt>
-                        <dd className="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">
-                          {profile.points}
-                        </dd>
-                      </div>
-                      <div className="px-4 py-5 bg-gray-50 dark:bg-gray-900 shadow rounded-lg overflow-hidden sm:p-6">
-                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                          Friends
-                        </dt>
-                        <dd className="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">
-                          {profile.friends?.length || 0}
-                        </dd>
-                      </div>
-                      <div className="px-4 py-5 bg-gray-50 dark:bg-gray-900 shadow rounded-lg overflow-hidden sm:p-6">
-                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                          Courses Completed
-                        </dt>
-                        <dd className="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">
-                          {profile.completedCourses.length}
-                        </dd>
-                      </div>
-                      <div className="px-4 py-5 bg-gray-50 dark:bg-gray-900 shadow rounded-lg overflow-hidden sm:p-6">
-                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                          Challenges Won
-                        </dt>
-                        <dd className="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">
-                          {profile.completedChallenges.length}
-                        </dd>
-                      </div>
-                    </dl>
-                  </div>
-
-                  {/* Badges Section */}
-                  <div>
-                    <h2 className="text-lg font-medium text-gray-900 dark:text-white">
-                      Badges
-                    </h2>
-                    <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-                      {profile.badges.map((badge) => (
-                        <div
-                          key={badge}
-                          className="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-900 rounded-lg"
-                        >
-                          <div className="w-16 h-16 relative">
-                            <Image
-                              src={`/badges/${badge}.png`}
-                              alt={badge}
-                              fill
-                              className="object-contain"
-                            />
-                          </div>
-                          <span className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                            {badge}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
             </div>
           </div>
         </div>
+
+        {/* Badges Section */}
+        {profile.accountType === "child" && (
+          <div className="mt-8">
+            <BadgesSection points={profile.points} />
+          </div>
+        )}
       </div>
     </div>
   );
