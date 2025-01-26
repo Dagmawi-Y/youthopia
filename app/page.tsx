@@ -275,7 +275,7 @@ export default function Home() {
         className="relative min-h-screen overflow-hidden bg-white dark:bg-gray-950 transition-colors duration-300"
       >
         {/* Hero Section */}
-        <div className="relative parallax-section">
+        <div className="relative parallax-section min-h-screen flex items-center">
           <motion.div
             style={{ y, opacity }}
             className="absolute inset-0 bg-gradient-to-b from-[#F6F7C4]/30 via-white/50 to-[#A1EEBD]/30 dark:opacity-0 transition-opacity duration-300 parallax-bg"
@@ -285,7 +285,7 @@ export default function Home() {
             className="absolute inset-0 bg-gradient-to-b from-[#F6F7C4]/10 via-transparent to-[#A1EEBD]/10 opacity-0 dark:opacity-100 transition-opacity duration-300 parallax-bg"
           />
 
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-16">
+          <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center relative z-10">
               <TypeWriter />
               <motion.p
@@ -298,67 +298,19 @@ export default function Home() {
                 together. Join our community of curious adventurers!
               </motion.p>
               <motion.div
-                className="mt-10 flex items-center justify-center gap-x-6"
+                className="hero-button mt-8"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.8, delay: 0.6 }}
+                transition={{ duration: 1, delay: 0.6 }}
               >
-                <Link href="/activity">
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                <Link href="/auth/signup">
+                  <Button
+                    size="lg"
+                    className="bg-[#7BD3EA] hover:bg-[#7BD3EA]/90 text-white font-semibold px-8 py-6 text-lg rounded-full"
                   >
-                    <Button className="hero-button bg-[#7BD3EA] hover:bg-[#A1EEBD] text-black dark:text-white text-lg px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-200">
-                      Start Your Adventure
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
-                  </motion.div>
+                    Get Started <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
                 </Link>
-              </motion.div>
-
-              {/* Stats */}
-              <motion.div
-                ref={statsRef}
-                className="mt-20 grid grid-cols-1 gap-8 sm:grid-cols-3 max-w-4xl mx-auto"
-                style={{
-                  opacity: isStatsInView ? 1 : 0,
-                  transform: isStatsInView ? "none" : "translateY(50px)",
-                  transition: "all 0.9s cubic-bezier(0.17, 0.55, 0.55, 1) 0.5s",
-                }}
-              >
-                {[
-                  { label: "Active Learners", value: "10,000+" },
-                  { label: "Fun Courses", value: "200+" },
-                  { label: "Daily Challenges", value: "50+" },
-                ].map((stat, index) => (
-                  <motion.div
-                    key={stat.label}
-                    className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-lg p-6 shadow-lg"
-                    whileHover={{ scale: 1.05, rotate: 2 }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 300,
-                      delay: index * 0.1,
-                    }}
-                  >
-                    <motion.p
-                      className="text-4xl font-bold text-[#7BD3EA]"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 + index * 0.1 }}
-                    >
-                      {stat.value}
-                    </motion.p>
-                    <motion.p
-                      className="mt-2 text-gray-600 dark:text-gray-300"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.4 + index * 0.1 }}
-                    >
-                      {stat.label}
-                    </motion.p>
-                  </motion.div>
-                ))}
               </motion.div>
             </div>
           </div>
@@ -397,50 +349,71 @@ export default function Home() {
               </motion.p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
               {[
                 {
-                  title: "Creative Expression",
+                  label: "Interactive Learning",
+                  value: "Learn by Doing",
+                  icon: "🎮",
                   description:
-                    "Unleash your creativity through art, music, and storytelling",
-                  icon: Palette,
-                  color: "bg-[#7BD3EA] dark:bg-[#7BD3EA]/20",
+                    "Engage with hands-on activities and interactive lessons designed for young minds",
                 },
                 {
-                  title: "Interactive Learning",
+                  label: "Creative Projects",
+                  value: "Express Yourself",
+                  icon: "🎨",
                   description:
-                    "Engage with fun, interactive courses designed for young minds",
-                  icon: BookOpen,
-                  color: "bg-[#A1EEBD] dark:bg-[#A1EEBD]/20",
+                    "Unleash your creativity through art, coding, music, and exciting projects",
                 },
                 {
-                  title: "Daily Challenges",
+                  label: "Safe Environment",
+                  value: "Kid-Friendly",
+                  icon: "🛡️",
                   description:
-                    "Take part in exciting challenges and win cool rewards",
-                  icon: Trophy,
-                  color: "bg-[#F6F7C4] dark:bg-[#F6F7C4]/20",
-                },
-                {
-                  title: "Safe Community",
-                  description:
-                    "Connect with friends in a safe, moderated environment",
-                  icon: Users,
-                  color: "bg-[#7BD3EA] dark:bg-[#7BD3EA]/20",
+                    "A secure and moderated platform where children can learn and grow safely",
                 },
               ].map((feature, index) => (
                 <motion.div
-                  key={feature.title}
+                  key={feature.label}
                   initial={{ opacity: 0, y: 50 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-lg p-6 shadow-lg"
+                  whileHover={{ scale: 1.05, rotate: 2 }}
                 >
-                  <FeatureCard
-                    title={feature.title}
-                    description={feature.description}
-                    icon={feature.icon}
-                    color={feature.color}
-                  />
+                  <motion.p
+                    className="text-4xl mb-2"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 + index * 0.1 }}
+                  >
+                    {feature.icon}
+                  </motion.p>
+                  <motion.p
+                    className="text-2xl font-bold text-[#7BD3EA]"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 + index * 0.1 }}
+                  >
+                    {feature.value}
+                  </motion.p>
+                  <motion.p
+                    className="mt-2 text-gray-600 dark:text-gray-300"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.4 + index * 0.1 }}
+                  >
+                    {feature.label}
+                  </motion.p>
+                  <motion.p
+                    className="mt-3 text-sm text-gray-500 dark:text-gray-400"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 + index * 0.1 }}
+                  >
+                    {feature.description}
+                  </motion.p>
                 </motion.div>
               ))}
             </div>
