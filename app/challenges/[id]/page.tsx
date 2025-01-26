@@ -2,9 +2,7 @@ import { Metadata } from "next";
 import { ChallengeDetailClient } from "./challenge-detail-client";
 
 interface PageProps {
-  params: {
-    id: string;
-  };
+  params: Promise<{ id: string }>;
 }
 
 export const metadata: Metadata = {
@@ -12,6 +10,7 @@ export const metadata: Metadata = {
   description: "View challenge details and submit your work",
 };
 
-export default function ChallengePage({ params }: PageProps) {
-  return <ChallengeDetailClient challengeId={params.id} />;
+export default async function ChallengePage({ params }: PageProps) {
+  const resolvedParams = await params;
+  return <ChallengeDetailClient challengeId={resolvedParams.id} />;
 }
