@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   description: "Interactive learning experience",
 };
 
-export default function LearnPage({ params }: { params: { id: string } }) {
-  return <LearnPageClient courseId={params.id} />;
+export default async function LearnPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const { id } = await params;
+  return <LearnPageClient courseId={id} />;
 }
