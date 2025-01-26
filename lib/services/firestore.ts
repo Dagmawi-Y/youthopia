@@ -661,3 +661,29 @@ export const deleteTopic = async (topicId: string) => {
   const topicRef = doc(db, "courseTopics", topicId);
   await deleteDoc(topicRef);
 };
+
+export const getUserProfileByUsername = async (username: string) => {
+  try {
+    const q = query(
+      collection(db, "users"),
+      where("username", "==", username.toLowerCase())
+    );
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      console.error("No profile found for username:", username);
+      return null;
+    }
+
+    const userDoc = querySnapshot.docs[0];
+    const data = userDoc.data();
+    return {
+      ...data,
+      createdAt: data.createdAt?.toDate() || new Date(),
+      updatedAt: data.updatedAt?.toDate() || new Date(),
+    } as UserProfile;
+  } catch (error) {
+    console.error("Error getting user profile by username:", error);
+    throw error;
+  }
+};
