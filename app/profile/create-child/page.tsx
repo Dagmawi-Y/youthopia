@@ -45,7 +45,7 @@ export default function CreateChildAccountPage() {
       setIsUsernameAvailable(null);
     }
     return () => checkUsername.cancel();
-  }, [username]);
+  }, [username, checkUsername]);
 
   if (!user) {
     router.push("/auth/signin");

@@ -211,7 +211,7 @@ function EditChildContent({ params }: { params: { id: string } }) {
 
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              Edit {childProfile.displayName}'s Profile
+              Edit {childProfile.displayName}&apos;s Profile
             </h1>
 
             <form onSubmit={handleSubmit} className="space-y-6">

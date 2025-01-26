@@ -25,7 +25,7 @@ import {
   useInView,
   AnimatePresence,
 } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -129,12 +129,15 @@ const faqs = [
 ];
 
 const TypeWriter = () => {
-  const texts = [
-    "Welcome to Youthopia",
-    "Discover New Skills",
-    "Learn & Grow",
-    "Have Fun",
-  ];
+  const texts = useMemo(
+    () => [
+      "Welcome to Youthopia",
+      "Discover New Skills",
+      "Learn & Grow",
+      "Have Fun",
+    ],
+    []
+  );
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const [currentText, setCurrentText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
@@ -568,7 +571,7 @@ export default function Home() {
                   whileHover={{ y: -5 }}
                 >
                   <p className="text-gray-600 dark:text-gray-300 italic mb-4">
-                    "{testimonial.quote}"
+                    &ldquo;{testimonial.quote}&rdquo;
                   </p>
                   <p className="text-gray-900 dark:text-white font-semibold">
                     {testimonial.author}
