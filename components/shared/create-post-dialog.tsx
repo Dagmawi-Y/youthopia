@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/context/auth-context";
-import { createPost } from "@/lib/services/firestore";
+import { createPost, onUserProfileChange } from "@/lib/services/firestore";
 import { uploadFile } from "@/lib/appwrite";
 import { EmojiPicker } from "./emoji-picker";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { UserProfile } from "@/lib/types";
 
 const MAX_IMAGE_SIZE = 800; // Maximum width/height for the square image
 
@@ -93,8 +94,19 @@ export function CreatePostDialog({
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
   const [privacy, setPrivacy] = useState("everyone");
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const internalFileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
+
+  useEffect(() => {
+    if (!user) return;
+
+    const unsubscribe = onUserProfileChange(user.uid, (profile) => {
+      setUserProfile(profile);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
 
   const fileInputRef = externalFileInputRef || internalFileInputRef;
 
@@ -158,8 +170,8 @@ export function CreatePostDialog({
 
       await createPost({
         authorId: user.uid,
-        authorName: user.displayName || "",
-        authorPhotoURL: user.photoURL || "",
+        authorName: userProfile?.displayName || user.displayName || "",
+        authorPhotoURL: userProfile?.photoURL || "",
         content: content.trim(),
         mediaURL,
         mediaType,
@@ -187,8 +199,8 @@ export function CreatePostDialog({
           <DialogTitle className="flex items-center gap-2">
             <Avatar className="h-8 w-8">
               <AvatarImage
-                src={user?.photoURL || ""}
-                alt={user?.displayName || "User"}
+                src={userProfile?.photoURL || ""}
+                alt={userProfile?.displayName || "User"}
               />
               <AvatarFallback>
                 <User className="h-4 w-4" />
@@ -203,14 +215,17 @@ export function CreatePostDialog({
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10">
                 <AvatarImage
-                  src={user?.photoURL || ""}
-                  alt={user?.displayName || ""}
+                  src={userProfile?.photoURL || ""}
+                  alt={userProfile?.displayName || ""}
                 />
                 <AvatarFallback>
-                  {user?.displayName?.slice(0, 2).toUpperCase()}
+                  {userProfile?.displayName?.slice(0, 2).toUpperCase() ||
+                    user?.displayName?.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <div className="font-semibold">{user?.displayName}</div>
+              <div className="font-semibold">
+                {userProfile?.displayName || user?.displayName}
+              </div>
             </div>
             <Select defaultValue={privacy} onValueChange={setPrivacy}>
               <SelectTrigger className="w-[140px]">
