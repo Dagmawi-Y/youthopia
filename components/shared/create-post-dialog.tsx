@@ -6,7 +6,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Smile, X, Loader2, Image as ImageIcon, Video } from "lucide-react";
+import {
+  Smile,
+  X,
+  Loader2,
+  Image as ImageIcon,
+  Video,
+  User,
+} from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/context/auth-context";
 import { createPost } from "@/lib/services/firestore";
@@ -175,10 +182,19 @@ export function CreatePostDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">
-            Create a post
+          <DialogTitle className="flex items-center gap-2">
+            <Avatar className="h-8 w-8">
+              <AvatarImage
+                src={user?.photoURL || ""}
+                alt={user?.displayName || "User"}
+              />
+              <AvatarFallback>
+                <User className="h-4 w-4" />
+              </AvatarFallback>
+            </Avatar>
+            Create Post
           </DialogTitle>
         </DialogHeader>
         <div className="mt-4">
