@@ -19,6 +19,11 @@ export interface UserProfile {
   username?: string;
   friends: string[];
   friendRequests: string[];
+  courseProgress?: {
+    [courseId: string]: {
+      completedModules: boolean[];
+    };
+  };
   notificationSettings?: {
     emailNotifications: boolean;
     challengeUpdates: boolean;

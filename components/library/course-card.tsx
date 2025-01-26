@@ -2,12 +2,19 @@ import { Course } from "@/lib/types";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useRouter } from "next/navigation";
 
 interface CourseCardProps {
   course: Course;
 }
 
 export function CourseCard({ course }: CourseCardProps) {
+  const router = useRouter();
+
+  const handleViewCourse = () => {
+    router.push(`/courses/${course.id}`);
+  };
+
   return (
     <Card className="w-[300px] flex flex-col">
       <img
@@ -23,7 +30,10 @@ export function CourseCard({ course }: CourseCardProps) {
         <p className="text-gray-600 text-sm">{course.description}</p>
       </CardContent>
       <CardFooter className="mt-auto">
-        <Button className="w-full bg-[#A1EEBD] hover:bg-[#7BD3EA] text-black">
+        <Button
+          className="w-full bg-[#A1EEBD] hover:bg-[#7BD3EA] text-black"
+          onClick={handleViewCourse}
+        >
           View Course
         </Button>
       </CardFooter>
