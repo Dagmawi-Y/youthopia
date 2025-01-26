@@ -17,6 +17,8 @@ export interface UserProfile {
   parentId?: string;
   childAccounts?: string[];
   username?: string;
+  friends: string[];
+  friendRequests: string[];
   notificationSettings?: {
     emailNotifications: boolean;
     challengeUpdates: boolean;
@@ -155,4 +157,13 @@ export interface User {
   email: string;
   displayName: string;
   photoURL?: string;
+}
+
+export interface FriendRequest {
+  id: string;
+  fromUserId: string;
+  toUserId: string;
+  status: "pending" | "accepted" | "rejected";
+  createdAt: Date;
+  updatedAt: Date;
 }

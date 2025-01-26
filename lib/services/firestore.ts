@@ -26,6 +26,7 @@ import type {
   Course,
   Challenge,
   Badge,
+  FriendRequest,
 } from "../types";
 
 export { arrayUnion, arrayRemove, serverTimestamp };
@@ -718,4 +719,109 @@ export const onPostsChange = (callback: (posts: Post[]) => void) => {
 
     callback(postsWithDetails as Post[]);
   });
+};
+
+export const sendFriendRequest = async (
+  fromUserId: string,
+  toUserId: string
+) => {
+  const requestId = `${fromUserId}_${toUserId}`;
+  const requestRef = doc(db, "friendRequests", requestId);
+  const request: FriendRequest = {
+    id: requestId,
+    fromUserId,
+    toUserId,
+    status: "pending",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  await setDoc(requestRef, request);
+
+  // Add to recipient's friendRequests array
+  const recipientRef = doc(db, "users", toUserId);
+  await updateDoc(recipientRef, {
+    friendRequests: arrayUnion(requestId),
+  });
+};
+
+export const getFriendRequests = async (userId: string) => {
+  const requestsQuery = query(
+    collection(db, "friendRequests"),
+    where("toUserId", "==", userId),
+    where("status", "==", "pending")
+  );
+
+  const snapshot = await getDocs(requestsQuery);
+  return snapshot.docs.map((doc) => doc.data() as FriendRequest);
+};
+
+export const respondToFriendRequest = async (
+  requestId: string,
+  response: "accepted" | "rejected"
+) => {
+  const requestRef = doc(db, "friendRequests", requestId);
+  const request = (await getDoc(requestRef)).data() as FriendRequest;
+
+  if (!request) {
+    throw new Error("Friend request not found");
+  }
+
+  await updateDoc(requestRef, {
+    status: response,
+    updatedAt: new Date(),
+  });
+
+  if (response === "accepted") {
+    // Add each user to the other's friends list
+    const user1Ref = doc(db, "users", request.fromUserId);
+    const user2Ref = doc(db, "users", request.toUserId);
+
+    await updateDoc(user1Ref, {
+      friends: arrayUnion(request.toUserId),
+    });
+
+    await updateDoc(user2Ref, {
+      friends: arrayUnion(request.fromUserId),
+      friendRequests: arrayRemove(requestId),
+    });
+  } else {
+    // Remove request from recipient's friendRequests
+    const recipientRef = doc(db, "users", request.toUserId);
+    await updateDoc(recipientRef, {
+      friendRequests: arrayRemove(requestId),
+    });
+  }
+};
+
+export const getFriendStatus = async (userId1: string, userId2: string) => {
+  const requestId1 = `${userId1}_${userId2}`;
+  const requestId2 = `${userId2}_${userId1}`;
+
+  const request1Ref = doc(db, "friendRequests", requestId1);
+  const request2Ref = doc(db, "friendRequests", requestId2);
+
+  const [request1Doc, request2Doc] = await Promise.all([
+    getDoc(request1Ref),
+    getDoc(request2Ref),
+  ]);
+
+  if (request1Doc.exists()) {
+    return request1Doc.data() as FriendRequest;
+  }
+
+  if (request2Doc.exists()) {
+    return request2Doc.data() as FriendRequest;
+  }
+
+  // Check if they are already friends
+  const userRef = doc(db, "users", userId1);
+  const userDoc = await getDoc(userRef);
+  const userData = userDoc.data() as UserProfile;
+
+  if (userData.friends?.includes(userId2)) {
+    return { status: "accepted" };
+  }
+
+  return null;
 };
