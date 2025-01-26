@@ -51,6 +51,7 @@ export interface Post {
   updatedAt: Date;
   title: string;
   tags: string[];
+  challengeId?: string;
 }
 
 export interface Comment {

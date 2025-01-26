@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { CategoryFilters } from "@/components/shared/category-filters";
 import { Sparkles } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import * as FirestoreService from "@/lib/services/firestore";
 import type { Challenge } from "@/lib/types";
@@ -13,38 +14,42 @@ function ChallengeCard({ challenge }: { challenge: Challenge }) {
   const daysLeft = getDaysLeft(challenge.deadline);
 
   return (
-    <div className="group relative bg-white rounded-xl shadow-sm overflow-hidden">
-      <div className="relative aspect-[4/3]">
-        <Image
-          src={challenge.imageURL || "/placeholder-challenge.jpg"}
-          alt={challenge.title}
-          fill
-          className="object-cover transition-transform group-hover:scale-105"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        <div className="absolute bottom-4 left-4 right-4">
-          <h3 className="text-lg font-semibold text-white">
-            {challenge.title}
-          </h3>
-          <p className="mt-1 text-sm text-white/80">{challenge.description}</p>
+    <Link href={`/challenges/${challenge.id}`} className="block">
+      <div className="group relative bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+        <div className="relative aspect-[4/3]">
+          <Image
+            src={challenge.imageURL || "/placeholder-challenge.jpg"}
+            alt={challenge.title}
+            fill
+            className="object-cover transition-transform group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          <div className="absolute bottom-4 left-4 right-4">
+            <h3 className="text-lg font-semibold text-white">
+              {challenge.title}
+            </h3>
+            <p className="mt-1 text-sm text-white/80">
+              {challenge.description}
+            </p>
+          </div>
         </div>
-      </div>
-      <div className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-500">
-              {challenge.participants?.length || 0} participants
+        <div className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-500">
+                {challenge.participants?.length || 0} participants
+              </span>
+            </div>
+            <span className="text-sm font-medium text-[#7BD3EA]">
+              {daysLeft} days left
             </span>
           </div>
-          <span className="text-sm font-medium text-[#7BD3EA]">
-            {daysLeft} days left
-          </span>
+          <Button className="mt-4 w-full bg-[#7BD3EA] hover:bg-[#A1EEBD] text-black rounded-full">
+            View Challenge
+          </Button>
         </div>
-        <Button className="mt-4 w-full bg-[#7BD3EA] hover:bg-[#A1EEBD] text-black rounded-full">
-          Join Challenge
-        </Button>
       </div>
-    </div>
+    </Link>
   );
 }
 

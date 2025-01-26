@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Heart, MessageCircle, Share2 } from "lucide-react";
+import { Heart, MessageCircle, Share2, Trophy } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
@@ -24,6 +24,7 @@ interface ContentCardProps {
   commentCount?: number;
   timestamp?: string;
   className?: string;
+  challengeId?: string;
 }
 
 export function ContentCard({
@@ -37,6 +38,7 @@ export function ContentCard({
   commentCount = 0,
   timestamp,
   className,
+  challengeId,
 }: ContentCardProps) {
   const [isMediaViewerOpen, setIsMediaViewerOpen] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
@@ -71,6 +73,16 @@ export function ContentCard({
           className
         )}
       >
+        {/* Challenge Banner */}
+        {challengeId && (
+          <Link href={`/challenges/${challengeId}`}>
+            <div className="bg-gradient-to-r from-[#7BD3EA] to-[#A1EEBD] text-black px-4 py-2 rounded-t-lg flex items-center gap-2">
+              <Trophy className="h-4 w-4" />
+              <span className="text-sm font-medium">Challenge Submission</span>
+            </div>
+          </Link>
+        )}
+
         {/* User Info */}
         <div className="p-3 flex items-center justify-between">
           <Link

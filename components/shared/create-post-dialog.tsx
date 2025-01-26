@@ -13,6 +13,7 @@ import {
   Image as ImageIcon,
   Video,
   User,
+  Trophy,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/context/auth-context";
@@ -29,13 +30,12 @@ import {
 } from "@/components/ui/select";
 import { UserProfile } from "@/lib/types";
 
-const MAX_IMAGE_SIZE = 800; // Maximum width/height for the square image
+const MAX_IMAGE_SIZE = 800;
 
 const processImage = (file: File): Promise<File> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
-      // Create a square canvas with the minimum dimension
       const size = Math.min(img.width, img.height, MAX_IMAGE_SIZE);
       const canvas = document.createElement("canvas");
       canvas.width = size;
@@ -46,21 +46,17 @@ const processImage = (file: File): Promise<File> => {
         return;
       }
 
-      // Calculate cropping position to center the image
       const sx = (img.width - size) / 2;
       const sy = (img.height - size) / 2;
 
-      // Draw the cropped and scaled image
       ctx.drawImage(img, sx, sy, size, size, 0, 0, size, size);
 
-      // Convert canvas to blob
       canvas.toBlob(
         (blob) => {
           if (!blob) {
             reject(new Error("Could not create blob"));
             return;
           }
-          // Create a new file from the blob
           const processedFile = new File([blob], file.name, {
             type: "image/jpeg",
             lastModified: Date.now(),
@@ -80,12 +76,18 @@ interface CreatePostDialogProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   fileInputRef?: React.RefObject<HTMLInputElement>;
+  challengeId?: string;
+  defaultTags?: string[];
+  onSuccess?: () => void;
 }
 
 export function CreatePostDialog({
   open,
   onOpenChange,
   fileInputRef: externalFileInputRef,
+  challengeId,
+  defaultTags = [],
+  onSuccess,
 }: CreatePostDialogProps) {
   const [content, setContent] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -168,6 +170,11 @@ export function CreatePostDialog({
         mediaURL = await uploadFile(mediaFile);
       }
 
+      const tags = [...defaultTags];
+      if (challengeId) {
+        tags.push(`challenge-${challengeId}`);
+      }
+
       await createPost({
         authorId: user.uid,
         authorName: userProfile?.displayName || user.displayName || "",
@@ -176,13 +183,15 @@ export function CreatePostDialog({
         mediaURL,
         mediaType,
         title: "",
-        tags: [],
+        tags,
+        challengeId,
       });
 
       setContent("");
       setMediaPreview(null);
       setMediaFile(null);
       setMediaType("image");
+      onSuccess?.();
       onOpenChange?.(false);
     } catch (error) {
       console.error("Error creating post:", error);
@@ -197,16 +206,20 @@ export function CreatePostDialog({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Avatar className="h-8 w-8">
-              <AvatarImage
-                src={userProfile?.photoURL || ""}
-                alt={userProfile?.displayName || "User"}
-              />
-              <AvatarFallback>
-                <User className="h-4 w-4" />
-              </AvatarFallback>
-            </Avatar>
-            Create Post
+            {challengeId ? (
+              <Trophy className="h-6 w-6 text-[#7BD3EA]" />
+            ) : (
+              <Avatar className="h-8 w-8">
+                <AvatarImage
+                  src={userProfile?.photoURL || ""}
+                  alt={userProfile?.displayName || "User"}
+                />
+                <AvatarFallback>
+                  <User className="h-4 w-4" />
+                </AvatarFallback>
+              </Avatar>
+            )}
+            {challengeId ? "Submit Challenge" : "Create Post"}
           </DialogTitle>
         </DialogHeader>
         <div className="mt-4">
